@@ -20,6 +20,12 @@ export interface GradientCanvasProps {
   breath?: number
   /** System reduced-motion. §12.3: gradient becomes slowly shifting static field. */
   reduceMotion?: boolean
+  /**
+   * Base psychedelic intensity 0..1 — bright hue-shifting color field. High on
+   * the "awake" screens (Onboarding, Pre-Play), 0 during the calm sleep session.
+   * The canvas lerps toward this so changes are smooth, never a hard step.
+   */
+  psychedelic?: number
   /** When true, freezes time advance (e.g. app backgrounded §11). */
   paused?: boolean
   /**
@@ -88,10 +94,12 @@ export function GradientCanvas(props: GradientCanvasProps) {
       breath: gl.getUniformLocation(prog, 'u_breath'),
       dim: gl.getUniformLocation(prog, 'u_dim'),
       motion: gl.getUniformLocation(prog, 'u_motion'),
+      psych: gl.getUniformLocation(prog, 'u_psych'),
     }
 
     let raf = 0
     let shaderTime = 0
+    let psychCurrent = 0
     let last = performance.now()
 
     const resize = () => {
@@ -131,6 +139,11 @@ export function GradientCanvas(props: GradientCanvasProps) {
       gl.uniform1f(u.breath, ctrl.params.breathSync ? breath : 0.5)
       gl.uniform1f(u.dim, dim)
       gl.uniform1f(u.motion, reduce ? 0.4 : 1)
+      // psychedelic: lerp base toward target, then add the crossfade burst.
+      // Reduced motion keeps it calm (no time-driven hue shifting).
+      const psychTarget = reduce ? 0 : p.psychedelic ?? 0
+      psychCurrent += (psychTarget - psychCurrent) * Math.min(1, dt * 1.2)
+      gl.uniform1f(u.psych, reduce ? 0 : psychCurrent + ctrl.transitionEnergy(now))
 
       gl.drawArrays(gl.TRIANGLES, 0, 3)
       raf = requestAnimationFrame(frame)

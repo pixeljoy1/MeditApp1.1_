@@ -35,6 +35,14 @@ uniform float u_noise;        // §5.2 noiseIntensity 0.0..0.4
 uniform float u_breath;       // 0..1 breath envelope (luminosity), §5.1
 uniform float u_dim;          // 0..1 dimming multiplier, §5.3
 uniform float u_motion;       // 1 = full shader, 0 = reduced motion static field
+uniform float u_psych;        // 0..1.5 psychedelic intensity (hue rotation + bloom)
+
+// --- hue rotation (Rodrigues rotation about the grey axis) -----------------
+vec3 hueShift(vec3 col, float a){
+  const vec3 k = vec3(0.57735); // (1,1,1)/sqrt(3)
+  float c = cos(a);
+  return col * c + cross(k, col) * sin(a) + k * dot(k, col) * (1.0 - c);
+}
 
 // --- value noise -----------------------------------------------------------
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
@@ -86,6 +94,18 @@ void main() {
   // saturation control around luma
   float luma = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(luma), col, u_saturation);
+
+  // --- psychedelic transition (§ enhancement) ------------------------------
+  // Bright, shifting color field: continuous hue rotation across space + time,
+  // oversaturation, and a rainbow shimmer. Scales with u_psych so the calm
+  // sleep state (psych = 0) is untouched.
+  if (u_psych > 0.001) {
+    float ang = u_time * 0.45 + (uv.x * 1.3 + uv.y * 0.9) * 3.14159;
+    col = hueShift(col, ang * u_psych);
+    col = mix(vec3(luma), col, 1.0 + 0.9 * u_psych); // oversaturate
+    col += u_psych * 0.16 * vec3(sin(ang), sin(ang + 2.094), sin(ang + 4.188));
+    col *= 1.0 + 0.30 * u_psych; // bloom / brighten
+  }
 
   // breath luminosity + sleep dimming
   float lum = mix(0.86, 1.06, u_breath); // gentle ±, §5.1

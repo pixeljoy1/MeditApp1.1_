@@ -8,6 +8,7 @@ import { useMemo } from 'react'
 import { CATALOG, byId } from '../session/catalog'
 import { GROUP_LABEL, Session, SessionGroup } from '../session/types'
 import { SessionCard } from '../components/SessionCard'
+import { VersionPill } from '../components/VersionPill'
 import { useStore } from '../state/store'
 import { greeting } from '../state/util'
 
@@ -44,7 +45,8 @@ export function Home({
         <button aria-label="Settings" onClick={() => openSettings(true)} style={{ fontSize: 20, color: 'var(--text-ghost)' }}>
           ⚙
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)' }}>
+          <VersionPill />
           <span className="serif" style={{ fontSize: 18, color: 'var(--text-primary)' }}>
             Drift
           </span>

@@ -57,6 +57,18 @@ export class GradientController {
     this.crossfading = true
   }
 
+  /**
+   * Psychedelic burst envelope (0..1) over a palette crossfade — a bell curve
+   * peaking mid-transition. Added on top of any base psychedelic intensity so
+   * switching palettes flares bright before settling. §5.4 enhancement.
+   */
+  transitionEnergy(now = performance.now()): number {
+    if (!this.crossfading) return 0
+    const t = (now - this.crossfadeStart) / duration.paletteCrossfade
+    if (t <= 0 || t >= 1) return 0
+    return Math.sin(Math.PI * t) // 0 → 1 → 0
+  }
+
   /** Interpolated 18-float color-source array for the shader. */
   currentColors(now = performance.now()): number[] {
     if (!this.crossfading) return this.toColors

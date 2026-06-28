@@ -27,8 +27,9 @@ export function PrePlay({
   return (
     <div className="screen">
       {/* gradient is rendered by App at the base layer */}
-      <button onClick={onBack} aria-label="Back" style={backBtn}>
-        ←
+      <button onClick={onBack} aria-label="Back to home" style={backBtn}>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+        <span>Home</span>
       </button>
 
       <div style={layout}>
@@ -61,7 +62,16 @@ const backBtn: React.CSSProperties = {
   position: 'absolute',
   top: 16,
   left: 20,
-  fontSize: 24,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  height: 40,
+  padding: '0 16px',
+  borderRadius: 100,
+  background: 'rgba(8,8,16,0.45)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  fontSize: 15,
   color: 'var(--text-primary)',
   zIndex: 10,
 }

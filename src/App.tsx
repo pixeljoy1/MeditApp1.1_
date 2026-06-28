@@ -121,6 +121,8 @@ export default function App() {
           controller={controller}
           reduceMotion={reduce}
           sample={screen === 'session' ? stableSample : undefined}
+          // bright psychedelic field while choosing (Pre-Play); calm in session
+          psychedelic={screen === 'preplay' ? 0.85 : 0}
         />
       )}
 
