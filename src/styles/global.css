@@ -1,0 +1,105 @@
+/* Global styles — Drift spec §4. Always dark, never light (§3). */
+
+:root {
+  --surface: #080810;
+  --surface-raised: #0f0f1e;
+  --text-primary: #f0eef8;
+  --text-secondary: #8e8baa;
+  --text-ghost: #3d3b52;
+  --accent: #a78bfa;
+  --accent-dim: #6d4fc7;
+  --danger: #f87171;
+
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+button {
+  font-family: var(--sans);
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+input {
+  font-family: var(--sans);
+  color: var(--text-primary);
+}
+
+/* Scrollbars stay invisible — the gradient is the face (§4.1). */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* App shell: phone-like frame, centered. Landscape-first (§3). */
+.app-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Screen layer that fades between states (§12). */
+.screen {
+  position: absolute;
+  inset: 0;
+  animation: screen-in 440ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen {
+    animation-duration: 1ms;
+  }
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.serif {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.no-select {
+  user-select: none;
+}
