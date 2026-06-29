@@ -17,15 +17,12 @@ interface Props {
   running?: boolean
 }
 
-// classic stereo-EQ segment color by vertical position (0 bottom → 1 top)
-function segColor(t: number, lit: boolean) {
-  if (!lit) return 'rgba(120,130,150,0.10)'
-  if (t > 0.85) return '#E5484D' // red
-  if (t > 0.62) return '#E8C547' // amber
-  return '#41D67E' // green
+// monotone white segments
+function segColor(lit: boolean) {
+  return lit ? 'rgba(240,238,248,0.85)' : 'rgba(240,238,248,0.07)'
 }
 
-export function Equalizer({ bars = 16, segments = 12, opacity = 1, width = 300, height = 64, running = true }: Props) {
+export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, height = 64, running = true }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const opacityRef = useRef(opacity)
   opacityRef.current = opacity
@@ -45,10 +42,12 @@ export function Equalizer({ bars = 16, segments = 12, opacity = 1, width = 300, 
     const peak = new Array(bars).fill(0)
     let freq: Uint8Array | null = null
 
+    // each channel rises within the bottom half — max bar height = height / 2
+    const usableH = height / 2
     const segGap = 2
-    const barGap = Math.max(2, width / bars / 4)
+    const barGap = Math.max(3, width / bars / 2.4) // thinner bars
     const barW = (width - barGap * (bars - 1)) / bars
-    const segH = (height - segGap * (segments - 1)) / segments
+    const segH = (usableH - segGap * (segments - 1)) / segments // thin lines
 
     const draw = () => {
       if (!runningRef.current) {
@@ -77,11 +76,10 @@ export function Equalizer({ bars = 16, segments = 12, opacity = 1, width = 300, 
         const x = b * (barW + barGap)
 
         for (let s = 0; s < segments; s++) {
-          const t = s / (segments - 1)
           const y = height - (s + 1) * segH - s * segGap
           const isLit = s < lit
           const isPeak = s === peakSeg - 1 && peakSeg > 0
-          g.fillStyle = isPeak ? '#F0EEF8' : segColor(t, isLit)
+          g.fillStyle = isPeak ? '#FFFFFF' : segColor(isLit)
           g.fillRect(x, y, barW, segH)
         }
       }
