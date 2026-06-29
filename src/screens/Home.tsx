@@ -42,16 +42,19 @@ export function Home({
 
   return (
     <div className="screen" style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
-      {/* fixed top bar */}
+      {/* fixed top bar: app name left · version + settings right */}
       <div style={topBar}>
-        <button aria-label="Settings" onClick={() => openSettings(true)} style={gear}>
-          ⚙
-        </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="serif" style={{ fontSize: 18, color: 'var(--text-primary)' }}>
             Drift
           </span>
           <span style={{ fontSize: 16 }}>🌙</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <VersionPill />
+          <button aria-label="Settings" onClick={() => openSettings(true)} style={gear}>
+            ⚙
+          </button>
         </div>
       </div>
 
@@ -93,9 +96,7 @@ export function Home({
             </div>
           ))}
 
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 0 8px' }}>
-            <VersionPill />
-          </div>
+          <div style={{ height: 16 }} />
         </div>
       </div>
     </div>
