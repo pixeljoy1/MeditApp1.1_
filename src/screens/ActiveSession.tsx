@@ -4,7 +4,7 @@
  * overlay (auto-hides in 4s). Breathwork swaps the clock for a BreathRing.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Session } from '../session/types'
 import { SessionRuntime } from '../state/useSession'
 import { ControlOverlay } from '../components/ControlOverlay'
@@ -18,17 +18,17 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   const [overlay, setOverlay] = useState(false)
   const [hint, setHint] = useState(true)
   const [showEq, setShowEq] = useState(true)
-  const hideTimer = useRef<number | null>(null)
   const isBreath = !!session.breath
 
+  // The control modal is also the pause state: opening it pauses the session
+  // (audio + countdown); dismissing resumes. The in-modal button still toggles.
   const summon = () => {
     setOverlay(true)
-    if (hideTimer.current) clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => setOverlay(false), 4000) // auto-hide 4s (§7.2)
+    if (!runtime.paused) runtime.togglePause()
   }
   const dismiss = () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current)
     setOverlay(false)
+    if (runtime.paused) runtime.togglePause()
   }
 
   // Teach the interaction: show a brief hint at session start, then fade it.
@@ -36,8 +36,6 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
     const t = window.setTimeout(() => setHint(false), 4500)
     return () => clearTimeout(t)
   }, [])
-
-  useEffect(() => () => void (hideTimer.current && clearTimeout(hideTimer.current)), [])
 
   // breathwork ring needs a smooth tick; cheap rAF only when breathing.
   const [, force] = useState(0)

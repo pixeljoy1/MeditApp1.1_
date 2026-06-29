@@ -1,25 +1,31 @@
 /**
- * Equalizer — audio-reactive visualizer that mimics the playing music.
- * Reads the AudioEngine's AnalyserNode each frame and draws a symmetric row of
- * bars whose heights follow the live frequency spectrum. Soft, glowing, calm —
- * a reflection of the sound, not a club VU meter.
+ * Equalizer — a 90s hi-fi graphic spectrum analyzer.
+ * Classic segmented LED bars (green → amber → red, bottom to top) with
+ * slow-falling peak-hold caps, driven by the AudioEngine's AnalyserNode.
+ * Toggleable + battery-friendly (loop pauses when hidden).
  */
 
 import { useEffect, useRef } from 'react'
 import { audioEngine } from '../audio/AudioEngine'
-import { color } from '../theme/tokens'
 
 interface Props {
   bars?: number
-  /** Overall opacity (fades with the session dimming). */
+  segments?: number
   opacity?: number
   width?: number
   height?: number
-  /** When false, the render loop pauses (saves battery while hidden). */
   running?: boolean
 }
 
-export function Equalizer({ bars = 28, opacity = 1, width = 300, height = 64, running = true }: Props) {
+// classic stereo-EQ segment color by vertical position (0 bottom → 1 top)
+function segColor(t: number, lit: boolean) {
+  if (!lit) return 'rgba(120,130,150,0.10)'
+  if (t > 0.85) return '#E5484D' // red
+  if (t > 0.62) return '#E8C547' // amber
+  return '#41D67E' // green
+}
+
+export function Equalizer({ bars = 16, segments = 12, opacity = 1, width = 300, height = 64, running = true }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const opacityRef = useRef(opacity)
   opacityRef.current = opacity
@@ -35,50 +41,55 @@ export function Equalizer({ bars = 28, opacity = 1, width = 300, height = 64, ru
     g.scale(dpr, dpr)
 
     let raf = 0
-    const smooth = new Array(bars).fill(0)
+    const level = new Array(bars).fill(0)
+    const peak = new Array(bars).fill(0)
     let freq: Uint8Array | null = null
 
-    const frame = () => {
+    const segGap = 2
+    const barGap = Math.max(2, width / bars / 4)
+    const barW = (width - barGap * (bars - 1)) / bars
+    const segH = (height - segGap * (segments - 1)) / segments
+
+    const draw = () => {
       if (!runningRef.current) {
-        raf = requestAnimationFrame(frame)
+        raf = requestAnimationFrame(draw)
         return
       }
       const analyser = audioEngine.analyser
-      g.clearRect(0, 0, width, height)
-
       if (analyser) {
-        if (!freq || freq.length !== analyser.frequencyBinCount) {
-          freq = new Uint8Array(analyser.frequencyBinCount)
-        }
+        if (!freq || freq.length !== analyser.frequencyBinCount) freq = new Uint8Array(analyser.frequencyBinCount)
         analyser.getByteFrequencyData(freq as Uint8Array<ArrayBuffer>)
       }
-
+      g.clearRect(0, 0, width, height)
       const op = opacityRef.current
-      const mid = (bars - 1) / 2
-      const barW = width / bars
-      for (let i = 0; i < bars; i++) {
-        // sample lower-mid spectrum (most musical energy lives there)
-        const src = freq ? freq[Math.floor((i / bars) * (freq.length * 0.6))] / 255 : 0
-        // ease toward target for a gentle, liquid motion
-        smooth[i] += (src - smooth[i]) * 0.18
-        const dist = 1 - Math.abs(i - mid) / mid // taller in the middle
-        const h = Math.max(2, smooth[i] * height * (0.5 + 0.5 * dist))
-        const x = i * barW + barW * 0.2
-        const w = barW * 0.6
-        const y = (height - h) / 2
-        g.fillStyle = color.accent
-        g.globalAlpha = op * (0.35 + 0.65 * smooth[i])
-        // rounded bar
-        const r = Math.min(w / 2, 3)
-        g.beginPath()
-        g.roundRect(x, y, w, h, r)
-        g.fill()
+      g.globalAlpha = op
+
+      for (let b = 0; b < bars; b++) {
+        // sample across the musical part of the spectrum
+        const raw = freq ? freq[Math.floor((b / bars) * (freq.length * 0.7))] / 255 : 0
+        level[b] += (raw - level[b]) * 0.22
+        // peak hold falls slowly
+        if (level[b] > peak[b]) peak[b] = level[b]
+        else peak[b] = Math.max(level[b], peak[b] - 0.012)
+
+        const lit = Math.round(level[b] * segments)
+        const peakSeg = Math.round(peak[b] * segments)
+        const x = b * (barW + barGap)
+
+        for (let s = 0; s < segments; s++) {
+          const t = s / (segments - 1)
+          const y = height - (s + 1) * segH - s * segGap
+          const isLit = s < lit
+          const isPeak = s === peakSeg - 1 && peakSeg > 0
+          g.fillStyle = isPeak ? '#F0EEF8' : segColor(t, isLit)
+          g.fillRect(x, y, barW, segH)
+        }
       }
-      raf = requestAnimationFrame(frame)
+      raf = requestAnimationFrame(draw)
     }
-    raf = requestAnimationFrame(frame)
+    raf = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(raf)
-  }, [bars, width, height])
+  }, [bars, segments, width, height])
 
   return <canvas ref={ref} style={{ width, height, display: 'block' }} aria-hidden />
 }

@@ -27,8 +27,6 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
       style={{
         position: 'absolute',
         inset: 0,
-        display: 'grid',
-        placeItems: 'center',
         zIndex: 30,
         background: open ? 'rgba(8,8,16,0.42)' : 'rgba(8,8,16,0)',
         backdropFilter: open ? 'blur(3px)' : 'blur(0px)',
@@ -37,25 +35,33 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
         transition: 'background 360ms ease, backdrop-filter 360ms ease, opacity 300ms ease',
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 'min(460px, 86%)',
-          background: 'rgba(15,15,30,0.72)',
-          backdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 28,
-          padding: '28px 26px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 22,
-          transform: open ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.9)',
-          opacity: open ? 1 : 0,
-          // expressive overshoot on the way in
-          transition: 'transform 480ms cubic-bezier(0.34,1.56,0.64,1), opacity 300ms ease',
-        }}
-      >
+      {/* card sits in the center of the bottom half of the screen */}
+      <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', bottom: 0, display: 'grid', placeItems: 'center', padding: 16 }}>
+        {/* entrance (overshoot spring) */}
+        <div
+          style={{
+            transform: open ? 'translateY(0) scale(1)' : 'translateY(26px) scale(0.9)',
+            opacity: open ? 1 : 0,
+            transition: 'transform 480ms cubic-bezier(0.34,1.56,0.64,1), opacity 300ms ease',
+          }}
+        >
+          {/* gentle floating bob while open */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 'min(460px, 88vw)',
+              background: 'rgba(15,15,30,0.72)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 28,
+              padding: '28px 26px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 22,
+              animation: open ? 'co-bob 5s ease-in-out infinite' : 'none',
+            }}
+          >
         {/* primary play / pause */}
         <div style={child(open, 0)}>
           <button
@@ -109,7 +115,13 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
             End Session
           </button>
         </div>
+          </div>
+        </div>
       </div>
+      <style>{`
+        @keyframes co-bob { 0%,100% { transform: translateY(-5px); } 50% { transform: translateY(5px); } }
+        @media (prefers-reduced-motion: reduce) { [style*="co-bob"] { animation: none !important; } }
+      `}</style>
     </div>
   )
 }

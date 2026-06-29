@@ -349,6 +349,8 @@ export class AudioEngine {
   }
 
   fadeOut(seconds = 8) {
+    // ensure the context is running so the fade is audible even if paused
+    this.ctx?.resume()
     this.fader?.fadeToSilence(seconds)
     window.setTimeout(() => this.stopLayers(), seconds * 1000 + 100)
   }
