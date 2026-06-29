@@ -17,6 +17,7 @@ import { color } from '../theme/tokens'
 export function ActiveSession({ session, runtime }: { session: Session; runtime: SessionRuntime }) {
   const [overlay, setOverlay] = useState(false)
   const [hint, setHint] = useState(true)
+  const [showEq, setShowEq] = useState(true)
   const hideTimer = useRef<number | null>(null)
   const isBreath = !!session.breath
 
@@ -58,6 +59,22 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
   return (
     <div className="screen" onClick={overlay ? dismiss : summon}>
+      {/* Equalizer show/hide toggle — non-obtrusive control, top-left. */}
+      <button
+        aria-label={showEq ? 'Hide equalizer' : 'Show equalizer'}
+        onClick={(e) => {
+          e.stopPropagation()
+          setShowEq((v) => !v)
+        }}
+        style={{ ...cornerBtn, left: 16, color: showEq ? color.accent : 'var(--text-secondary)' }}
+      >
+        <span style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 14 }}>
+          <i style={{ ...bar, height: 6 }} />
+          <i style={{ ...bar, height: 13 }} />
+          <i style={{ ...bar, height: 9 }} />
+        </span>
+      </button>
+
       {/* Always-visible exit — a clean pathway home, no discovery required. */}
       <button
         aria-label="End session and return home"
@@ -65,7 +82,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           e.stopPropagation()
           runtime.endSession()
         }}
-        style={exitBtn}
+        style={{ ...cornerBtn, right: 16 }}
       >
         ✕
       </button>
@@ -82,8 +99,20 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
               {clock(runtime.elapsedSec)}
             </div>
           )}
-          {/* audio-reactive equalizer — mimics the playing music */}
-          <Equalizer opacity={0.3 + 0.7 * runtime.timerOpacity} width={300} height={56} />
+          {/* audio-reactive equalizer — mimics the playing music. Toggleable so it
+              never obstructs the meditation; collapses/expands with a smooth spring. */}
+          <div
+            style={{
+              overflow: 'hidden',
+              maxHeight: showEq ? 72 : 0,
+              opacity: showEq ? 0.3 + 0.7 * runtime.timerOpacity : 0,
+              transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
+              transition:
+                'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
+            }}
+          >
+            <Equalizer opacity={1} width={300} height={56} running={showEq} />
+          </div>
         </div>
       </div>
 
@@ -136,10 +165,9 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   )
 }
 
-const exitBtn: React.CSSProperties = {
+const cornerBtn: React.CSSProperties = {
   position: 'absolute',
   top: 14,
-  right: 16,
   width: 40,
   height: 40,
   borderRadius: 100,
@@ -148,7 +176,15 @@ const exitBtn: React.CSSProperties = {
   border: '1px solid rgba(255,255,255,0.1)',
   color: 'var(--text-secondary)',
   fontSize: 15,
+  display: 'grid',
+  placeItems: 'center',
   zIndex: 35,
+}
+const bar: React.CSSProperties = {
+  width: 3,
+  borderRadius: 2,
+  background: 'currentColor',
+  display: 'block',
 }
 const hintRow: React.CSSProperties = {
   position: 'absolute',

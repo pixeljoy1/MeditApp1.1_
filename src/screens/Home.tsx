@@ -11,6 +11,7 @@ import { CATALOG, byId } from '../session/catalog'
 import { GROUP_LABEL, Session, SessionGroup } from '../session/types'
 import { SessionCard } from '../components/SessionCard'
 import { VersionPill } from '../components/VersionPill'
+import { PullToRefresh } from '../components/PullToRefresh'
 import { useStore } from '../state/store'
 import { greeting } from '../state/util'
 
@@ -58,8 +59,8 @@ export function Home({
         </div>
       </div>
 
-      {/* scrollable content */}
-      <div style={scroll}>
+      {/* scrollable content with pull-to-refresh */}
+      <PullToRefresh style={scroll}>
         <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
           <h1 className="serif" style={{ fontSize: 30, margin: '4px 0 2px' }}>
             {greeting()}
@@ -98,7 +99,7 @@ export function Home({
 
           <div style={{ height: 16 }} />
         </div>
-      </div>
+      </PullToRefresh>
     </div>
   )
 }

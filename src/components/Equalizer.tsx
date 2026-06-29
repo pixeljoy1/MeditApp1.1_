@@ -15,12 +15,16 @@ interface Props {
   opacity?: number
   width?: number
   height?: number
+  /** When false, the render loop pauses (saves battery while hidden). */
+  running?: boolean
 }
 
-export function Equalizer({ bars = 28, opacity = 1, width = 300, height = 64 }: Props) {
+export function Equalizer({ bars = 28, opacity = 1, width = 300, height = 64, running = true }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const opacityRef = useRef(opacity)
   opacityRef.current = opacity
+  const runningRef = useRef(running)
+  runningRef.current = running
 
   useEffect(() => {
     const canvas = ref.current!
@@ -35,6 +39,10 @@ export function Equalizer({ bars = 28, opacity = 1, width = 300, height = 64 }: 
     let freq: Uint8Array | null = null
 
     const frame = () => {
+      if (!runningRef.current) {
+        raf = requestAnimationFrame(frame)
+        return
+      }
       const analyser = audioEngine.analyser
       g.clearRect(0, 0, width, height)
 
