@@ -137,16 +137,15 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         </div>
       )}
 
-      {overlay && (
-        <ControlOverlay
-          paused={runtime.paused}
-          volume={runtime.volume}
-          onTogglePause={runtime.togglePause}
-          onVolume={runtime.setVolume}
-          onAddTime={runtime.addTen}
-          onEnd={runtime.endSession}
-        />
-      )}
+      <ControlOverlay
+        open={overlay}
+        paused={runtime.paused}
+        volume={runtime.volume}
+        onTogglePause={runtime.togglePause}
+        onVolume={runtime.setVolume}
+        onAddTime={runtime.addTen}
+        onEnd={runtime.endSession}
+      />
 
       {/* fade-to-black overlay (§5.3 / §8.3) */}
       <div

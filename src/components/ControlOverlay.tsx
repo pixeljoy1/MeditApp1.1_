@@ -1,13 +1,18 @@
 /**
- * ControlOverlay — Drift spec §8.3.
- * Frosted card, centered. Exactly 4 controls: Pause, Volume, +10 min, End Session.
- * Auto-hides after 4s (handled by the parent). rgba(8,8,16,0.72) blur behind card.
+ * ControlOverlay — Drift spec §8.3, restyled to the app's calm language.
+ * A frosted card that springs in and out (never a hard cut). Controls:
+ * a circular play/pause, a clean volume slider, and ghost pills (+10 / End).
+ *
+ * Rendered persistently and driven by `open` so the exit animates too; when
+ * closed it is fully transparent and non-interactive (taps pass through to the
+ * session surface).
  */
 
 import { haptic } from '../state/util'
 import { radius } from '../theme/tokens'
 
 interface Props {
+  open: boolean
   paused: boolean
   volume: number
   onTogglePause: () => void
@@ -16,40 +21,59 @@ interface Props {
   onEnd: () => void
 }
 
-export function ControlOverlay({ paused, volume, onTogglePause, onVolume, onAddTime, onEnd }: Props) {
+export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, onAddTime, onEnd }: Props) {
   return (
     <div
       style={{
         position: 'absolute',
         inset: 0,
-        background: 'rgba(8,8,16,0.50)',
         display: 'grid',
         placeItems: 'center',
         zIndex: 30,
-        animation: 'fade 200ms ease',
+        background: open ? 'rgba(8,8,16,0.42)' : 'rgba(8,8,16,0)',
+        backdropFilter: open ? 'blur(3px)' : 'blur(0px)',
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? 'auto' : 'none',
+        transition: 'background 360ms ease, backdrop-filter 360ms ease, opacity 300ms ease',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(560px, 84%)',
-          background: 'rgba(8,8,16,0.72)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: radius.card,
-          padding: 24,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 20,
+          width: 'min(460px, 86%)',
+          background: 'rgba(15,15,30,0.72)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 28,
+          padding: '28px 26px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 22,
+          transform: open ? 'translateY(0) scale(1)' : 'translateY(18px) scale(0.94)',
+          opacity: open ? 1 : 0,
+          transition:
+            'transform 440ms cubic-bezier(0.22,1,0.36,1), opacity 300ms ease',
         }}
       >
-        <button onClick={onTogglePause} style={ctl}>
-          <span style={{ fontSize: 20 }}>{paused ? '▶' : '⏸'}</span>
-          <span style={lbl}>{paused ? 'Resume' : 'Pause'}</span>
+        {/* primary play / pause */}
+        <button
+          aria-label={paused ? 'Resume' : 'Pause'}
+          onClick={() => {
+            haptic.light()
+            onTogglePause()
+          }}
+          style={primary}
+          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
+          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          {paused ? <PlayIcon /> : <PauseIcon />}
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 16 }}>🔊</span>
+        {/* volume */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%' }}>
+          <SpeakerIcon />
           <input
             type="range"
             min={0}
@@ -57,36 +81,87 @@ export function ControlOverlay({ paused, volume, onTogglePause, onVolume, onAddT
             step={0.01}
             value={volume}
             onChange={(e) => onVolume(parseFloat(e.target.value))}
-            style={{ flex: 1, accentColor: 'var(--accent)' }}
+            style={slider}
             aria-label="Volume"
           />
         </div>
 
-        <button
-          onClick={() => {
-            haptic.doublePulse()
-            onAddTime()
-          }}
-          style={ctl}
-        >
-          <span style={{ fontSize: 18 }}>＋</span>
-          <span style={lbl}>10 min</span>
-        </button>
-
-        <button onClick={onEnd} style={{ ...ctl, color: 'var(--text-secondary)' }}>
-          <span style={{ fontSize: 18 }}>✕</span>
-          <span style={lbl}>End Session</span>
-        </button>
+        {/* secondary actions */}
+        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+          <button
+            onClick={() => {
+              haptic.doublePulse()
+              onAddTime()
+            }}
+            style={ghostPill}
+          >
+            + 10 min
+          </button>
+          <button
+            onClick={() => {
+              haptic.medium()
+              onEnd()
+            }}
+            style={{ ...ghostPill, color: 'var(--text-secondary)' }}
+          >
+            End Session
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-const ctl: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  minHeight: 44,
-  color: 'var(--text-primary)',
+// — thin line icons (1.5dp stroke, per §4.5) —
+const stroke = { stroke: '#120A26', strokeWidth: 2, fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+function PlayIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24">
+      <path d="M8 5l11 7-11 7V5z" fill="#120A26" />
+    </svg>
+  )
 }
-const lbl: React.CSSProperties = { fontSize: 16, fontWeight: 300 }
+function PauseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24">
+      <line x1="9" y1="5" x2="9" y2="19" {...stroke} />
+      <line x1="15" y1="5" x2="15" y2="19" {...stroke} />
+    </svg>
+  )
+}
+function SpeakerIcon() {
+  const s = { stroke: 'var(--text-secondary)', strokeWidth: 1.5, fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" style={{ flex: '0 0 auto' }}>
+      <path d="M4 9v6h4l5 4V5L8 9H4z" {...s} />
+      <path d="M16.5 8.5a5 5 0 010 7" {...s} />
+    </svg>
+  )
+}
+
+const primary: React.CSSProperties = {
+  width: 64,
+  height: 64,
+  borderRadius: radius.pill,
+  background: 'var(--accent)',
+  color: '#120A26',
+  display: 'grid',
+  placeItems: 'center',
+  transition: 'transform 120ms cubic-bezier(0.22,1,0.36,1), filter 200ms ease',
+  boxShadow: '0 0 0 6px rgba(167,139,250,0.10)',
+}
+const slider: React.CSSProperties = {
+  flex: 1,
+  accentColor: 'var(--accent)',
+  height: 3,
+}
+const ghostPill: React.CSSProperties = {
+  flex: 1,
+  minHeight: 46,
+  borderRadius: radius.pill,
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  color: 'var(--text-primary)',
+  fontSize: 15,
+  fontWeight: 300,
+}
