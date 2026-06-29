@@ -9,6 +9,7 @@ import { Session } from '../session/types'
 import { SessionRuntime } from '../state/useSession'
 import { ControlOverlay } from '../components/ControlOverlay'
 import { BreathRing } from '../components/BreathRing'
+import { Equalizer } from '../components/Equalizer'
 import { breathStateAt } from '../session/BreathController'
 import { clock } from '../state/util'
 import { color } from '../theme/tokens'
@@ -70,16 +71,20 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
       </button>
 
       <div style={center}>
-        {isBreath ? (
-          <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
-        ) : (
-          <div
-            className="serif"
-            style={{ fontSize: 48, opacity: runtime.timerOpacity, transition: 'opacity 1s linear' }}
-          >
-            {clock(runtime.elapsedSec)}
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+          {isBreath ? (
+            <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
+          ) : (
+            <div
+              className="serif"
+              style={{ fontSize: 48, opacity: runtime.timerOpacity, transition: 'opacity 1s linear' }}
+            >
+              {clock(runtime.elapsedSec)}
+            </div>
+          )}
+          {/* audio-reactive equalizer — mimics the playing music */}
+          <Equalizer opacity={0.3 + 0.7 * runtime.timerOpacity} width={300} height={56} />
+        </div>
       </div>
 
       {!isBreath && (

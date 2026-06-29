@@ -4,7 +4,17 @@
  * shader places as drifting color sources.
  */
 
-export type PaletteId = 'dusk' | 'deepWater' | 'ember'
+export type PaletteId =
+  | 'dusk'
+  | 'deepWater'
+  | 'ember'
+  | 'forest'
+  | 'coastal'
+  | 'rainfall'
+  | 'aurora'
+  | 'tide'
+  | 'starfield'
+  | 'mountain'
 
 export interface Palette {
   id: PaletteId
@@ -16,6 +26,7 @@ export interface Palette {
 }
 
 export const PALETTES: Record<PaletteId, Palette> = {
+  // — spec §4.2 canonical three —
   dusk: {
     id: 'dusk',
     name: 'Dusk',
@@ -33,6 +44,49 @@ export const PALETTES: Record<PaletteId, Palette> = {
     name: 'Ember',
     stops: ['#1A0A05', '#5C2B0A', '#8B3A1A'], // Charcoal → Amber → Burnt Sienna
     descriptor: 'Amber · Warm',
+  },
+  // — mood-matched palettes (one per sleep theme) —
+  forest: {
+    id: 'forest',
+    name: 'Forest',
+    stops: ['#04140C', '#0C3B24', '#1E5E3A'], // pine → moss → fern
+    descriptor: 'Green · Woodland',
+  },
+  coastal: {
+    id: 'coastal',
+    name: 'Coastal',
+    stops: ['#03101F', '#0A2E4D', '#10657E'], // deep ocean → teal surf
+    descriptor: 'Ocean · Night surf',
+  },
+  rainfall: {
+    id: 'rainfall',
+    name: 'Rainfall',
+    stops: ['#0A0F18', '#1C2A3A', '#3A4E62'], // charcoal-blue → slate → steel
+    descriptor: 'Slate · Rain',
+  },
+  aurora: {
+    id: 'aurora',
+    name: 'Aurora',
+    stops: ['#031018', '#0B6E58', '#3A2E7E'], // dark → teal-green → violet
+    descriptor: 'Aurora · Pulsing',
+  },
+  tide: {
+    id: 'tide',
+    name: 'Deep Tide',
+    stops: ['#020812', '#06243F', '#0E3A52'], // abyss navy → deep blue
+    descriptor: 'Sub-bass · Deep',
+  },
+  starfield: {
+    id: 'starfield',
+    name: 'Starfield',
+    stops: ['#03030A', '#10103A', '#2A2A5E'], // near-black → indigo
+    descriptor: 'Indigo · Still',
+  },
+  mountain: {
+    id: 'mountain',
+    name: 'Mountain Pass',
+    stops: ['#0A0D14', '#243042', '#4A5A70'], // slate → cool grey-blue
+    descriptor: 'Slate · Wind',
   },
 }
 

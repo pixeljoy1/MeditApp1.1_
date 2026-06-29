@@ -2,156 +2,352 @@
  * AudioEngine — Drift spec §6.
  * Web Audio twin of the ExoPlayer + LayerMixer + SleepFader stack.
  *
- * Because V1 ships with synth/mock audio (no licensed stems, see §18 Q2), each
- * session is rendered live from three oscillator-based layers:
- *   Layer 1 — Foundation  : continuous detuned drone (never stops)         §6.1
- *   Layer 2 — Breath      : slow LFO swell on a filtered pad (4–7s cycle)  §6.1
- *   Layer 3 — Ambient drift: sparse random tonal flickers                  §6.1
+ * V1 renders calming audio live (no licensed stems — §18 Q2) from:
+ *   Layer 1 — Foundation : a warm reverbed pad (root + octave + fifth, slow chorus)
+ *   Layer 2 — Breath     : a slow swelling tone at the breath cycle (4–7s)
+ *   Layer 3 — Ambient    : a per-session sound module (rain / waves / forest / …)
  *
- * The user controls overall volume only (§6.1). The SleepFader applies an
- * exponential fade-to-silence (§6.2).
+ * Everything runs through a convolution reverb for spaciousness, then a master
+ * gain (user volume), which also feeds an AnalyserNode that drives the equalizer.
  */
 
 import { SleepFader } from './SleepFader'
 
+export type AmbientType = 'none' | 'rain' | 'waves' | 'forest' | 'wind' | 'shimmer'
+
 export interface SessionSound {
-  /** Root frequency (Hz) for the foundation drone. */
+  /** Root frequency (Hz) for the foundation pad. */
   root: number
   /** Breath cycle seconds (4–7s typical). Drives Layer 2 + the visual breath envelope. */
   breathCycle: number
-  /** Ambient flicker density 0..1 (Layer 3). */
+  /** Ambient intensity 0..1 (Layer 3). */
   ambientDensity: number
-  /** Lowpass cutoff (Hz) — darker = sleepier. */
+  /** Lowpass cutoff (Hz) for the pad — darker = sleepier. */
   cutoff: number
+  /** Which ambient sound module to layer in (§6.3 themes). */
+  ambient: AmbientType
+}
+
+function brownNoiseBuffer(ctx: AudioContext, seconds = 5): AudioBuffer {
+  const len = Math.floor(ctx.sampleRate * seconds)
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate)
+  const d = buf.getChannelData(0)
+  let last = 0
+  for (let i = 0; i < len; i++) {
+    const white = Math.random() * 2 - 1
+    last = (last + 0.02 * white) / 1.02
+    d[i] = last * 3.2
+  }
+  return buf
+}
+
+function impulseBuffer(ctx: AudioContext, seconds = 3.5, decay = 3): AudioBuffer {
+  const len = Math.floor(ctx.sampleRate * seconds)
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate)
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch)
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay)
+    }
+  }
+  return buf
 }
 
 export class AudioEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
+  private bus: GainNode | null = null // pre-reverb mix bus
+  private wet: GainNode | null = null
+  private dry: GainNode | null = null
+  private convolver: ConvolverNode | null = null
   private fader: SleepFader | null = null
+  private _analyser: AnalyserNode | null = null
+  private noise: AudioBuffer | null = null
 
-  private foundation: OscillatorNode[] = []
-  private foundationGain: GainNode | null = null
-  private breathGain: GainNode | null = null
-  private breathLfo: OscillatorNode | null = null
-  private ambientTimer: number | null = null
-  private filter: BiquadFilterNode | null = null
+  // live nodes to tear down per session
+  private nodes: Array<OscillatorNode | AudioBufferSourceNode> = []
+  private timers: number[] = []
 
   private _volume = 0.8
   private _breathPhase = 0
   private current: SessionSound | null = null
 
-  /** Latest breath envelope 0..1, polled by the gradient for luminosity sync. */
-  breathEnvelope(): number {
-    if (!this.current) return 0.5
-    const ctx = this.ctx
-    if (!ctx) return 0.5
-    // sine envelope over the breath cycle, normalized 0..1
-    const t = ctx.currentTime
-    const phase = ((t / this.current.breathCycle) * Math.PI * 2 + this._breathPhase) % (Math.PI * 2)
-    return 0.5 + 0.5 * Math.sin(phase)
-  }
-
   get volume() {
     return this._volume
   }
-
-  /** Lazily create the context (must follow a user gesture per browser policy). */
-  private ensure(): AudioContext {
-    if (!this.ctx) {
-      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
-      this.master = this.ctx.createGain()
-      this.master.gain.value = this._volume
-      this.filter = this.ctx.createBiquadFilter()
-      this.filter.type = 'lowpass'
-      this.filter.frequency.value = 800
-      this.filter.connect(this.master)
-      this.master.connect(this.ctx.destination)
-      this.fader = new SleepFader(this.ctx, this.master)
-    }
-    return this.ctx
+  get analyser(): AnalyserNode | null {
+    return this._analyser
   }
 
-  /** Start a session: build the three layers and fade in over 3s (§12.2). */
+  /** Latest breath envelope 0..1 — polled by the gradient for luminosity sync. */
+  breathEnvelope(): number {
+    const ctx = this.ctx
+    if (!this.current || !ctx) return 0.5
+    const phase = ((ctx.currentTime / this.current.breathCycle) * Math.PI * 2 + this._breathPhase) % (Math.PI * 2)
+    return 0.5 + 0.5 * Math.sin(phase)
+  }
+
+  private ensure(): AudioContext {
+    if (this.ctx) return this.ctx
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    this.ctx = ctx
+    this.noise = brownNoiseBuffer(ctx)
+
+    this.master = ctx.createGain()
+    this.master.gain.value = this._volume
+    this._analyser = ctx.createAnalyser()
+    this._analyser.fftSize = 256
+    this._analyser.smoothingTimeConstant = 0.8
+    this.master.connect(ctx.destination)
+    this.master.connect(this._analyser)
+
+    // reverb send/return
+    this.bus = ctx.createGain()
+    this.dry = ctx.createGain()
+    this.dry.gain.value = 0.8
+    this.wet = ctx.createGain()
+    this.wet.gain.value = 0.45
+    this.convolver = ctx.createConvolver()
+    this.convolver.buffer = impulseBuffer(ctx)
+    this.bus.connect(this.dry)
+    this.dry.connect(this.master)
+    this.bus.connect(this.convolver)
+    this.convolver.connect(this.wet)
+    this.wet.connect(this.master)
+
+    this.fader = new SleepFader(ctx, this.master)
+    return ctx
+  }
+
   async play(sound: SessionSound) {
     const ctx = this.ensure()
     if (ctx.state === 'suspended') await ctx.resume()
     this.stopLayers()
     this.current = sound
+    const bus = this.bus!
 
-    this.filter!.frequency.setValueAtTime(sound.cutoff, ctx.currentTime)
-
-    // Layer 1 — Foundation: 3 detuned oscillators for a warm drone.
-    this.foundationGain = ctx.createGain()
-    this.foundationGain.gain.value = 0.22
-    this.foundationGain.connect(this.filter!)
-    ;[0, -5, 7].forEach((detune, i) => {
+    // ── Layer 1: foundation pad (root + octave + fifth, gentle chorus) ──
+    const padFilter = ctx.createBiquadFilter()
+    padFilter.type = 'lowpass'
+    padFilter.frequency.value = sound.cutoff
+    padFilter.Q.value = 0.4
+    const padGain = ctx.createGain()
+    padGain.gain.value = 0.16
+    padFilter.connect(padGain)
+    padGain.connect(bus)
+    ;[
+      [sound.root, 0, 'sine'],
+      [sound.root, -6, 'triangle'],
+      [sound.root * 2, 4, 'sine'],
+      [sound.root * 1.5, -3, 'sine'],
+    ].forEach(([f, det, type]) => {
       const o = ctx.createOscillator()
-      o.type = i === 0 ? 'sine' : 'triangle'
-      o.frequency.value = sound.root
-      o.detune.value = detune
-      o.connect(this.foundationGain!)
+      o.type = type as OscillatorType
+      o.frequency.value = f as number
+      o.detune.value = det as number
+      // slow chorus drift
+      const lfo = ctx.createOscillator()
+      lfo.frequency.value = 0.05 + Math.random() * 0.08
+      const lg = ctx.createGain()
+      lg.gain.value = 4
+      lfo.connect(lg)
+      lg.connect(o.detune)
+      lfo.start()
+      o.connect(padFilter)
       o.start()
-      this.foundation.push(o)
+      this.nodes.push(o, lfo)
     })
 
-    // Layer 2 — Breath: a fifth above, swelled by a slow LFO at the breath cycle.
-    this.breathGain = ctx.createGain()
-    this.breathGain.gain.value = 0.0
-    this.breathGain.connect(this.filter!)
+    // ── Layer 2: breath swell ──
+    const breathGain = ctx.createGain()
+    breathGain.gain.value = 0.0
+    breathGain.connect(bus)
     const breathOsc = ctx.createOscillator()
     breathOsc.type = 'sine'
     breathOsc.frequency.value = sound.root * 1.5
-    breathOsc.connect(this.breathGain)
+    breathOsc.connect(breathGain)
     breathOsc.start()
-    this.foundation.push(breathOsc)
-    this.breathLfo = ctx.createOscillator()
-    this.breathLfo.frequency.value = 1 / sound.breathCycle
-    const lfoGain = ctx.createGain()
-    lfoGain.gain.value = 0.12
-    this.breathLfo.connect(lfoGain)
-    lfoGain.connect(this.breathGain.gain)
-    this.breathLfo.start()
+    const breathLfo = ctx.createOscillator()
+    breathLfo.frequency.value = 1 / sound.breathCycle
+    const breathLfoGain = ctx.createGain()
+    breathLfoGain.gain.value = 0.09
+    breathLfo.connect(breathLfoGain)
+    breathLfoGain.connect(breathGain.gain)
+    breathLfo.start()
+    this.nodes.push(breathOsc, breathLfo)
 
-    // Layer 3 — Ambient drift: sparse random bell-like flickers.
-    this.scheduleAmbient(sound)
+    // ── Layer 3: ambient module ──
+    this.buildAmbient(sound)
 
-    // Master fade-in (3s, §12.2). SleepFader owns master.gain envelopes.
+    // master fade-in (3s, §12.2)
     this.fader!.fadeIn(this._volume, 3)
   }
 
-  private scheduleAmbient(sound: SessionSound) {
+  // -- ambient modules (the §6.3 "exactly those" sound textures) --------------
+  private noiseSource(): AudioBufferSourceNode {
+    const src = this.ctx!.createBufferSource()
+    src.buffer = this.noise!
+    src.loop = true
+    src.start()
+    this.nodes.push(src)
+    return src
+  }
+
+  private lfo(freq: number, depth: number, target: AudioParam, base: number) {
+    const ctx = this.ctx!
+    target.value = base
+    const o = ctx.createOscillator()
+    o.frequency.value = freq
+    const g = ctx.createGain()
+    g.gain.value = depth
+    o.connect(g)
+    g.connect(target)
+    o.start()
+    this.nodes.push(o)
+  }
+
+  private buildAmbient(sound: SessionSound) {
+    const ctx = this.ctx!
+    const bus = this.bus!
+    const d = sound.ambientDensity
+
+    switch (sound.ambient) {
+      case 'rain': {
+        // body of rain
+        const bp = ctx.createBiquadFilter()
+        bp.type = 'bandpass'
+        bp.frequency.value = 1300
+        bp.Q.value = 0.6
+        const g = ctx.createGain()
+        g.gain.value = 0.5 * d
+        this.noiseSource().connect(bp)
+        bp.connect(g)
+        g.connect(bus)
+        this.lfo(0.7, 0.12 * d, g.gain, 0.5 * d) // gentle flutter
+        // fine droplets
+        const hp = ctx.createBiquadFilter()
+        hp.type = 'bandpass'
+        hp.frequency.value = 3400
+        hp.Q.value = 2.5
+        const g2 = ctx.createGain()
+        g2.gain.value = 0.14 * d
+        this.noiseSource().connect(hp)
+        hp.connect(g2)
+        g2.connect(bus)
+        break
+      }
+      case 'waves': {
+        const lp = ctx.createBiquadFilter()
+        lp.type = 'lowpass'
+        lp.frequency.value = 520
+        const g = ctx.createGain()
+        g.gain.value = 0.0
+        this.noiseSource().connect(lp)
+        lp.connect(g)
+        g.connect(bus)
+        // slow swell in/out — the breath of the sea
+        this.lfo(1 / 9, 0.32 * d, g.gain, 0.34 * d)
+        break
+      }
+      case 'forest': {
+        // wind bed
+        const lp = ctx.createBiquadFilter()
+        lp.type = 'lowpass'
+        lp.frequency.value = 650
+        const g = ctx.createGain()
+        g.gain.value = 0.22 * d
+        this.noiseSource().connect(lp)
+        lp.connect(g)
+        g.connect(bus)
+        this.lfo(1 / 11, 220, lp.frequency, 650)
+        this.scheduleBirds(d)
+        break
+      }
+      case 'wind': {
+        const bp = ctx.createBiquadFilter()
+        bp.type = 'bandpass'
+        bp.frequency.value = 520
+        bp.Q.value = 0.5
+        const g = ctx.createGain()
+        g.gain.value = 0.4 * d
+        this.noiseSource().connect(bp)
+        bp.connect(g)
+        g.connect(bus)
+        this.lfo(1 / 7, 320, bp.frequency, 560)
+        this.lfo(1 / 5, 0.16 * d, g.gain, 0.4 * d)
+        break
+      }
+      case 'shimmer':
+        this.scheduleShimmer(d)
+        break
+      case 'none':
+      default:
+        // pad + breath only; a touch of high shimmer keeps it alive
+        if (d > 0) this.scheduleShimmer(d * 0.5)
+        break
+    }
+  }
+
+  private scheduleBirds(density: number) {
     const ctx = this.ctx!
     const tick = () => {
       if (!this.current) return
-      if (Math.random() < sound.ambientDensity) {
+      if (Math.random() < density) {
+        const o = ctx.createOscillator()
+        const g = ctx.createGain()
+        const bp = ctx.createBiquadFilter()
+        bp.type = 'bandpass'
+        bp.frequency.value = 2600
+        bp.Q.value = 6
+        o.type = 'sine'
+        const base = 1800 + Math.random() * 1400
+        const now = ctx.currentTime
+        o.frequency.setValueAtTime(base, now)
+        o.frequency.linearRampToValueAtTime(base * 1.5, now + 0.12)
+        o.frequency.linearRampToValueAtTime(base * 1.1, now + 0.24)
+        g.gain.setValueAtTime(0, now)
+        g.gain.linearRampToValueAtTime(0.05, now + 0.05)
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5)
+        o.connect(bp)
+        bp.connect(g)
+        g.connect(this.bus!)
+        o.start(now)
+        o.stop(now + 0.55)
+      }
+      this.timers.push(window.setTimeout(tick, 3000 + Math.random() * 5000))
+    }
+    this.timers.push(window.setTimeout(tick, 2500))
+  }
+
+  private scheduleShimmer(density: number) {
+    const ctx = this.ctx!
+    const tick = () => {
+      if (!this.current) return
+      if (Math.random() < density) {
         const o = ctx.createOscillator()
         const g = ctx.createGain()
         o.type = 'sine'
-        const intervals = [0, 3, 5, 7, 12]
+        const intervals = [0, 3, 5, 7, 12, 19]
         const semi = intervals[Math.floor(Math.random() * intervals.length)]
-        o.frequency.value = sound.root * 2 * Math.pow(2, semi / 12)
-        g.gain.value = 0
-        o.connect(g)
-        g.connect(this.filter!)
+        o.frequency.value = (this.current?.root ?? 110) * 2 * Math.pow(2, semi / 12)
         const now = ctx.currentTime
         g.gain.setValueAtTime(0, now)
-        g.gain.linearRampToValueAtTime(0.06, now + 0.4)
-        g.gain.exponentialRampToValueAtTime(0.0001, now + 3.5)
+        g.gain.linearRampToValueAtTime(0.05, now + 0.6)
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 4.5)
+        o.connect(g)
+        g.connect(this.bus!)
         o.start(now)
-        o.stop(now + 3.6)
+        o.stop(now + 4.6)
       }
-      this.ambientTimer = window.setTimeout(tick, 1800 + Math.random() * 2600)
+      this.timers.push(window.setTimeout(tick, 2200 + Math.random() * 3200))
     }
-    this.ambientTimer = window.setTimeout(tick, 1500)
+    this.timers.push(window.setTimeout(tick, 1800))
   }
 
-  /** Begin the exponential fade-to-silence over `seconds` (§6.2, default 180s). */
   beginSleepFade(seconds = 180) {
     this.fader?.fadeToSilence(seconds)
   }
 
-  /** Hard fade out (e.g. End Session 8s, §8.3). */
   fadeOut(seconds = 8) {
     this.fader?.fadeToSilence(seconds)
     window.setTimeout(() => this.stopLayers(), seconds * 1000 + 100)
@@ -177,20 +373,16 @@ export class AudioEngine {
 
   private stopLayers() {
     this.current = null
-    if (this.ambientTimer) {
-      clearTimeout(this.ambientTimer)
-      this.ambientTimer = null
-    }
-    this.foundation.forEach((o) => {
+    this.timers.forEach((t) => clearTimeout(t))
+    this.timers = []
+    this.nodes.forEach((n) => {
       try {
-        o.stop()
+        n.stop()
       } catch {
         /* already stopped */
       }
     })
-    this.foundation = []
-    this.breathLfo?.stop()
-    this.breathLfo = null
+    this.nodes = []
   }
 }
 
