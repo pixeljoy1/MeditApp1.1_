@@ -32,7 +32,8 @@ body,
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overscroll-behavior: none;
+  /* allow the browser's native pull-to-refresh at the top of the page */
+  overscroll-behavior-y: auto;
   user-select: none;
 }
 
