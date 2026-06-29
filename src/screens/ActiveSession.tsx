@@ -10,8 +10,8 @@ import { SessionRuntime } from '../state/useSession'
 import { ControlOverlay } from '../components/ControlOverlay'
 import { BreathRing } from '../components/BreathRing'
 import { Equalizer } from '../components/Equalizer'
+import { SmoothTime } from '../components/SmoothTime'
 import { breathStateAt } from '../session/BreathController'
-import { clock } from '../state/util'
 import { color } from '../theme/tokens'
 
 export function ActiveSession({ session, runtime }: { session: Session; runtime: SessionRuntime }) {
@@ -52,10 +52,11 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
     return () => cancelAnimationFrame(raf)
   }, [isBreath])
 
-  const sleepLabel =
-    runtime.sleepRemainingSec == null
-      ? 'Until you stop it'
-      : `🌙 ${clock(runtime.sleepRemainingSec)} remaining`
+  // Big timer is a COUNTDOWN of the sleep timer; for "Until I stop it" it counts
+  // up the elapsed time (there's no target to count toward).
+  const countdown = runtime.sleepRemainingSec
+  const bigSeconds = countdown == null ? runtime.elapsedSec : countdown
+  const sleepLabel = countdown == null ? 'Until you stop it' : '🌙 until sleep'
 
   return (
     <div className="screen" onClick={overlay ? dismiss : summon}>
@@ -92,12 +93,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           {isBreath ? (
             <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
           ) : (
-            <div
-              className="serif"
-              style={{ fontSize: 48, opacity: runtime.timerOpacity, transition: 'opacity 1s linear' }}
-            >
-              {clock(runtime.elapsedSec)}
-            </div>
+            <SmoothTime seconds={bigSeconds} size={48} opacity={runtime.timerOpacity} />
           )}
           {/* audio-reactive equalizer — mimics the playing music. Toggleable so it
               never obstructs the meditation; collapses/expands with a smooth spring. */}

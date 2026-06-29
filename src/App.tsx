@@ -112,7 +112,12 @@ export default function App() {
     () => sampleRef.current?.() ?? { dim: 1, driftScale: 1, breath: 0.5 },
     [],
   )
-  const showGradient = screen === 'preplay' || screen === 'session'
+
+  // Buttery page-to-page fade: the displayed screen lags the target while it
+  // fades out, then swaps and fades the new one in. The gradient base layer
+  // follows `display` so it stays continuous across Pre-Play ↔ Session.
+  const { display, visible } = useScreenFade(screen)
+  const showGradient = display === 'preplay' || display === 'session'
 
   return (
     <div className="app-frame">
@@ -120,25 +125,34 @@ export default function App() {
         <GradientCanvas
           controller={controller}
           reduceMotion={reduce}
-          sample={screen === 'session' ? stableSample : undefined}
+          sample={display === 'session' ? stableSample : undefined}
           // bright psychedelic field while choosing (Pre-Play); calm in session
-          psychedelic={screen === 'preplay' ? 0.85 : 0}
+          psychedelic={display === 'preplay' ? 0.85 : 0}
         />
       )}
 
-      {screen === 'onboarding' && <Onboarding onDone={onboardingDone} />}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 260ms cubic-bezier(0.4,0,0.2,1)',
+        }}
+      >
+        {display === 'onboarding' && <Onboarding onDone={onboardingDone} />}
 
-      {screen === 'home' && (
-        <Home onSelect={handleSelect} onPreview={handlePreview} onLocked={handleLocked} />
-      )}
+        {display === 'home' && (
+          <Home onSelect={handleSelect} onPreview={handlePreview} onLocked={handleLocked} />
+        )}
 
-      {screen === 'preplay' && selected && (
-        <PrePlay session={selected} onBegin={beginSession} onBack={backHome} />
-      )}
+        {display === 'preplay' && selected && (
+          <PrePlay session={selected} onBegin={beginSession} onBack={backHome} />
+        )}
 
-      {screen === 'session' && selected && (
-        <SessionLayer session={selected} timer={selectedTimer} sampleRef={sampleRef} onExit={backHome} />
-      )}
+        {display === 'session' && selected && (
+          <SessionLayer session={selected} timer={selectedTimer} sampleRef={sampleRef} onExit={backHome} />
+        )}
+      </div>
 
       <Settings />
       <Paywall
@@ -152,6 +166,25 @@ export default function App() {
       {banner && <Banner text={banner} />}
     </div>
   )
+}
+
+/**
+ * useScreenFade — cross-fade screens. Keeps the outgoing screen mounted while it
+ * fades to 0, then swaps in the new screen and fades it back to 1.
+ */
+function useScreenFade(screen: string) {
+  const [display, setDisplay] = useState(screen)
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    if (screen === display) return
+    setVisible(false)
+    const t = window.setTimeout(() => {
+      setDisplay(screen)
+      setVisible(true)
+    }, 240)
+    return () => clearTimeout(t)
+  }, [screen, display])
+  return { display, visible }
 }
 
 /**

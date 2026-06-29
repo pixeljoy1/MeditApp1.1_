@@ -1,8 +1,10 @@
 /**
  * Sheet — bottom sheet (§7.3 / §8.4). 28dp top corners (§4.4), frosted surface.
- * Used for Settings (§9) and the Paywall (§14). Dismiss on backdrop tap.
+ * Used for Settings (§9) and the Paywall (§14). Springs up on open and slides
+ * back down on close — both directions animate (kept mounted during exit).
  */
 
+import { useEffect, useState } from 'react'
 import { radius } from '../theme/tokens'
 
 interface Props {
@@ -13,19 +15,36 @@ interface Props {
 }
 
 export function Sheet({ open, onClose, children, title }: Props) {
-  if (!open) return null
+  const [render, setRender] = useState(open)
+  const [shown, setShown] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setRender(true)
+      // mount closed, then flip on next frame so the slide-up animates
+      const r = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
+      return () => cancelAnimationFrame(r)
+    } else {
+      setShown(false)
+      const t = window.setTimeout(() => setRender(false), 360)
+      return () => clearTimeout(t)
+    }
+  }, [open])
+
+  if (!render) return null
+
   return (
     <div
       onClick={onClose}
       style={{
         position: 'absolute',
         inset: 0,
-        background: 'rgba(8,8,16,0.55)',
-        backdropFilter: 'blur(2px)',
+        background: shown ? 'rgba(8,8,16,0.55)' : 'rgba(8,8,16,0)',
+        backdropFilter: shown ? 'blur(2px)' : 'blur(0px)',
         display: 'flex',
         alignItems: 'flex-end',
         zIndex: 50,
-        animation: 'fade 200ms ease',
+        transition: 'background 320ms ease, backdrop-filter 320ms ease',
       }}
     >
       <div
@@ -38,7 +57,8 @@ export function Sheet({ open, onClose, children, title }: Props) {
           borderTopLeftRadius: radius.sheet,
           borderTopRightRadius: radius.sheet,
           padding: '20px 24px 32px',
-          animation: 'sheet-up 340ms cubic-bezier(0.34,1.2,0.4,1)',
+          transform: shown ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 360ms cubic-bezier(0.22,1,0.36,1)',
         }}
       >
         <div
@@ -57,13 +77,6 @@ export function Sheet({ open, onClose, children, title }: Props) {
         )}
         {children}
       </div>
-      <style>{`
-        @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes sheet-up { from { transform: translateY(100%) } to { transform: translateY(0) } }
-        @media (prefers-reduced-motion: reduce) {
-          [style*="sheet-up"] { animation-duration: 1ms !important }
-        }
-      `}</style>
     </div>
   )
 }
