@@ -93,7 +93,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           {isBreath ? (
             <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
           ) : (
-            <SmoothTime seconds={bigSeconds} size={48} opacity={runtime.timerOpacity} />
+            <SmoothTime seconds={bigSeconds} size={84} glow opacity={runtime.timerOpacity} />
           )}
           {/* audio-reactive equalizer — mimics the playing music. Toggleable so it
               never obstructs the meditation; collapses/expands with a smooth spring. */}
@@ -114,7 +114,9 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
       {!isBreath && (
         <div style={sleepRow}>
-          <span style={{ fontSize: 13, color: 'var(--text-ghost)' }}>{sleepLabel}</span>
+          <span className="label" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            {sleepLabel}
+          </span>
         </div>
       )}
 

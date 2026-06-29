@@ -50,29 +50,31 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
           flexDirection: 'column',
           alignItems: 'center',
           gap: 22,
-          transform: open ? 'translateY(0) scale(1)' : 'translateY(18px) scale(0.94)',
+          transform: open ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.9)',
           opacity: open ? 1 : 0,
-          transition:
-            'transform 440ms cubic-bezier(0.22,1,0.36,1), opacity 300ms ease',
+          // expressive overshoot on the way in
+          transition: 'transform 480ms cubic-bezier(0.34,1.56,0.64,1), opacity 300ms ease',
         }}
       >
         {/* primary play / pause */}
-        <button
-          aria-label={paused ? 'Resume' : 'Pause'}
-          onClick={() => {
-            haptic.light()
-            onTogglePause()
-          }}
-          style={primary}
-          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
-          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-        >
-          {paused ? <PlayIcon /> : <PauseIcon />}
-        </button>
+        <div style={child(open, 0)}>
+          <button
+            aria-label={paused ? 'Resume' : 'Pause'}
+            onClick={() => {
+              haptic.light()
+              onTogglePause()
+            }}
+            style={primary}
+            onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
+            onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            {paused ? <PlayIcon /> : <PauseIcon />}
+          </button>
+        </div>
 
         {/* volume */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%' }}>
+        <div style={{ ...child(open, 1), display: 'flex', alignItems: 'center', gap: 14, width: '100%' }}>
           <SpeakerIcon />
           <input
             type="range"
@@ -87,7 +89,7 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
         </div>
 
         {/* secondary actions */}
-        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+        <div style={{ ...child(open, 2), display: 'flex', gap: 12, width: '100%' }}>
           <button
             onClick={() => {
               haptic.doublePulse()
@@ -110,6 +112,18 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
       </div>
     </div>
   )
+}
+
+// staggered child reveal — expressive, settles top-to-bottom
+function child(open: boolean, i: number): React.CSSProperties {
+  return {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    opacity: open ? 1 : 0,
+    transform: open ? 'translateY(0)' : 'translateY(10px)',
+    transition: `opacity 320ms ease ${open ? 80 + i * 70 : 0}ms, transform 420ms cubic-bezier(0.34,1.4,0.64,1) ${open ? 80 + i * 70 : 0}ms`,
+  }
 }
 
 // — thin line icons (1.5dp stroke, per §4.5) —
