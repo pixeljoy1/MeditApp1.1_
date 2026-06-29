@@ -26,6 +26,7 @@ export interface SessionRuntime {
   volume: number
   timerOpacity: number
   blackout: number // 0..1 fade-to-black overlay
+  blackoutMs: number // duration of the fade-to-black transition
   statusNote: string | null // §11 transient states ("Paused — call in progress" etc.)
   sample: () => { dim: number; driftScale: number; breath: number }
   togglePause: () => void
@@ -35,7 +36,9 @@ export interface SessionRuntime {
 }
 
 const FADE_TO_SILENCE = 180 // §6.2 default 3-min audio fade
-const END_FADE = 8 // §8.3 End Session → 8s fade to black
+// §8.3 spec'd an 8s fade; in practice a manual exit needs to feel immediate, so
+// End Session fades audio over 2s and returns home in ~0.9s — a clean pathway.
+const NATURAL_BLACKOUT_MS = 8000
 
 export function useSession({ session, timer, onExit }: Options): SessionRuntime {
   const startRef = useRef(performance.now())
@@ -48,6 +51,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
   const [volume, setVol] = useState(audioEngine.volume)
   const [tick, setTick] = useState(0) // 1Hz display tick
   const [blackout, setBlackout] = useState(0)
+  const [blackoutMs, setBlackoutMs] = useState(700)
   const [statusNote, setStatusNote] = useState<string | null>(null)
   const sleepStartedRef = useRef(false)
   const exitedRef = useRef(false)
@@ -74,12 +78,13 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
   }, [])
 
   const finish = useCallback(
-    (fadeSeconds: number) => {
+    (audioFadeSec: number, exitDelayMs: number, fadeMs: number) => {
       if (exitedRef.current) return
       exitedRef.current = true
-      audioEngine.fadeOut(fadeSeconds)
+      audioEngine.fadeOut(audioFadeSec)
+      setBlackoutMs(fadeMs)
       setBlackout(1)
-      window.setTimeout(() => onExit(), fadeSeconds * 1000)
+      window.setTimeout(() => onExit(), exitDelayMs)
     },
     [onExit],
   )
@@ -96,7 +101,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       if (budget != null && !sleepStartedRef.current && e >= budget) {
         sleepStartedRef.current = true
         audioEngine.beginSleepFade(FADE_TO_SILENCE)
-        window.setTimeout(() => finish(90), FADE_TO_SILENCE * 1000)
+        window.setTimeout(() => finish(8, NATURAL_BLACKOUT_MS, NATURAL_BLACKOUT_MS), FADE_TO_SILENCE * 1000)
       }
     }, 1000)
     return () => clearInterval(id)
@@ -137,7 +142,8 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
     sleepStartedRef.current = false
   }, [])
 
-  const endSession = useCallback(() => finish(END_FADE), [finish])
+  // quick, clean exit: short audio fade + brief blackout, then home
+  const endSession = useCallback(() => finish(2, 900, 700), [finish])
 
   const e = elapsed()
   const budget = sleepBudgetRef.current
@@ -151,6 +157,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       volume,
       timerOpacity: timerOpacityAt(e),
       blackout,
+      blackoutMs,
       statusNote,
       sample,
       togglePause,
@@ -160,6 +167,6 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
     }),
     // tick drives recompute each second
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tick, paused, volume, blackout, statusNote, sample, togglePause, setVolume, addTen, endSession],
+    [tick, paused, volume, blackout, blackoutMs, statusNote, sample, togglePause, setVolume, addTen, endSession],
   )
 }

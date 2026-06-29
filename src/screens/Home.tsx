@@ -1,7 +1,9 @@
 /**
- * Home — Drift spec §8.1. Landscape-first; portrait stacks (§8.4).
- * Gear (settings) top-left, brand + moon top-right. Greeting. Featured last-played
- * card on the right. Horizontal mood rows of session cards. No bottom nav (§7.3).
+ * Home — Drift spec §8.1 / §8.4.
+ * Mobile-first and responsive: a single vertical scroll column with a fixed top
+ * bar. The featured (last-played) session sits up top, then each mood group is a
+ * wrapping responsive grid of cards — so nothing is cut off in portrait or
+ * landscape, on phone or desktop. No bottom nav (§7.3).
  */
 
 import { useMemo } from 'react'
@@ -39,14 +41,13 @@ export function Home({
   )
 
   return (
-    <div className="screen" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
-      {/* top bar */}
+    <div className="screen" style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
+      {/* fixed top bar */}
       <div style={topBar}>
-        <button aria-label="Settings" onClick={() => openSettings(true)} style={{ fontSize: 20, color: 'var(--text-ghost)' }}>
+        <button aria-label="Settings" onClick={() => openSettings(true)} style={gear}>
           ⚙
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)' }}>
-          <VersionPill />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="serif" style={{ fontSize: 18, color: 'var(--text-primary)' }}>
             Drift
           </span>
@@ -54,25 +55,30 @@ export function Home({
         </div>
       </div>
 
-      <div style={body}>
-        {/* left: greeting + mood rows */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto', paddingRight: 8 }}>
-          <div>
-            <h1 className="serif" style={{ fontSize: 34, margin: 0 }}>
-              {greeting()}
-              {name ? `, ${name}` : ''}
-            </h1>
-            <p style={{ color: 'var(--text-secondary)', margin: '6px 0 0', fontSize: 16 }}>
-              What do you need tonight?
-            </p>
-          </div>
+      {/* scrollable content */}
+      <div style={scroll}>
+        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
+          <h1 className="serif" style={{ fontSize: 30, margin: '4px 0 2px' }}>
+            {greeting()}
+            {name ? `, ${name}` : ''}
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', margin: '0 0 20px', fontSize: 15 }}>
+            What do you need tonight?
+          </p>
 
+          {/* featured — continue last played */}
+          <div className="label" style={{ marginBottom: 10 }}>
+            Continue
+          </div>
+          <SessionCard session={featured} onSelect={onSelect} onPreview={onPreview} onLocked={onLocked} featured fluid />
+
+          {/* mood groups as wrapping grids */}
           {rows.map((row) => (
-            <div key={row.group}>
+            <div key={row.group} style={{ marginTop: 26 }}>
               <div className="label" style={{ marginBottom: 10 }}>
                 {GROUP_LABEL[row.group]}
               </div>
-              <div style={scrollRow}>
+              <div style={grid}>
                 {row.items.map((s) => (
                   <SessionCard
                     key={s.id}
@@ -80,16 +86,16 @@ export function Home({
                     onSelect={onSelect}
                     onPreview={onPreview}
                     onLocked={onLocked}
+                    fluid
                   />
                 ))}
               </div>
             </div>
           ))}
-        </div>
 
-        {/* right: featured last-played (persistent, not algorithmic §8.1) */}
-        <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: 46 }}>
-          <SessionCard session={featured} onSelect={onSelect} onPreview={onPreview} onLocked={onLocked} featured />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 0 8px' }}>
+            <VersionPill />
+          </div>
         </div>
       </div>
     </div>
@@ -97,30 +103,23 @@ export function Home({
 }
 
 const topBar: React.CSSProperties = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
+  flex: '0 0 auto',
   height: 52,
-  padding: '0 20px',
+  padding: '0 18px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  zIndex: 10,
+  borderBottom: '1px solid rgba(255,255,255,0.04)',
 }
-const body: React.CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  paddingTop: 60,
-  paddingLeft: 24,
-  paddingRight: 24,
-  paddingBottom: 20,
-  display: 'flex',
-  gap: 24,
+const gear: React.CSSProperties = { fontSize: 20, color: 'var(--text-secondary)' }
+const scroll: React.CSSProperties = {
+  flex: 1,
+  overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  padding: '18px 18px 8px',
 }
-const scrollRow: React.CSSProperties = {
-  display: 'flex',
-  gap: 14,
-  overflowX: 'auto',
-  paddingBottom: 4,
+const grid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+  gap: 12,
 }

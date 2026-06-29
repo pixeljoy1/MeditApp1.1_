@@ -17,9 +17,11 @@ interface Props {
   onPreview?: (s: Session) => void
   onLocked?: (s: Session) => void
   featured?: boolean
+  /** Stretch to fill its grid cell (used by the responsive Home grid). */
+  fluid?: boolean
 }
 
-export function SessionCard({ session, onSelect, onPreview, onLocked, featured }: Props) {
+export function SessionCard({ session, onSelect, onPreview, onLocked, featured, fluid }: Props) {
   const { persisted } = useStore()
   const locked = isLocked(session, persisted.premium)
   const palette = effectivePalette(session, persisted.settings)
@@ -54,11 +56,11 @@ export function SessionCard({ session, onSelect, onPreview, onLocked, featured }
       onPointerLeave={endPress}
       style={{
         position: 'relative',
-        width: featured ? 240 : 160,
-        height: featured ? 168 : 100,
+        width: fluid ? '100%' : featured ? 240 : 160,
+        height: featured ? (fluid ? 150 : 168) : fluid ? 116 : 100,
         borderRadius: radius.card,
         overflow: 'hidden',
-        flex: '0 0 auto',
+        flex: fluid ? undefined : '0 0 auto',
         textAlign: 'left',
         transition: 'transform 280ms cubic-bezier(0.34,1.2,0.4,1)',
       }}

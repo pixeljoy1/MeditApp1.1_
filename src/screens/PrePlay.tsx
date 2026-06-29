@@ -32,27 +32,27 @@ export function PrePlay({
         <span>Home</span>
       </button>
 
-      <div style={layout}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <h1 className="serif" style={{ fontSize: 44, margin: 0 }}>
-            {session.title}
-          </h1>
-          <div style={{ fontSize: 16, color: 'var(--text-primary)' }}>{session.durationMin} min</div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{palette.descriptor}</div>
-        </div>
-
-        <div style={{ minWidth: 240 }}>
-          <div className="label" style={{ marginBottom: 12 }}>
-            Sleep Timer
+      <div style={scroll}>
+        <div style={card}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <h1 className="serif" style={{ fontSize: 40, margin: 0, lineHeight: 1.05 }}>
+              {session.title}
+            </h1>
+            <div style={{ fontSize: 16, color: 'var(--text-primary)' }}>{session.durationMin} min</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{palette.descriptor}</div>
           </div>
-          <TimerPicker value={selectedTimer} onChange={setTimer} premium={persisted.premium} />
-        </div>
-      </div>
 
-      <div style={beginWrap}>
-        <Pill onClick={onBegin} full style={{ maxWidth: 420 }}>
-          Begin Session
-        </Pill>
+          <div>
+            <div className="label" style={{ marginBottom: 12 }}>
+              Sleep Timer
+            </div>
+            <TimerPicker value={selectedTimer} onChange={setTimer} premium={persisted.premium} />
+          </div>
+
+          <Pill onClick={onBegin} full>
+            Begin Session
+          </Pill>
+        </div>
       </div>
     </div>
   )
@@ -75,22 +75,26 @@ const backBtn: React.CSSProperties = {
   color: 'var(--text-primary)',
   zIndex: 10,
 }
-const layout: React.CSSProperties = {
+const scroll: React.CSSProperties = {
   position: 'absolute',
   inset: 0,
-  padding: '0 56px',
+  overflowY: 'auto',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 48,
-  flexWrap: 'wrap',
+  justifyContent: 'center',
+  padding: '72px 24px 28px',
 }
-const beginWrap: React.CSSProperties = {
-  position: 'absolute',
-  bottom: 28,
-  left: 0,
-  right: 0,
-  display: 'grid',
-  placeItems: 'center',
-  padding: '0 24px',
+// Frosted card keeps content legible over the live gradient; centered, capped width,
+// stacks naturally on any screen.
+const card: React.CSSProperties = {
+  width: '100%',
+  maxWidth: 440,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 24,
+  padding: 24,
+  borderRadius: 24,
+  background: 'rgba(8,8,16,0.42)',
+  backdropFilter: 'blur(16px)',
+  border: '1px solid rgba(255,255,255,0.08)',
 }

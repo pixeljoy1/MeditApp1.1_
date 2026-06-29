@@ -15,6 +15,7 @@ import { color } from '../theme/tokens'
 
 export function ActiveSession({ session, runtime }: { session: Session; runtime: SessionRuntime }) {
   const [overlay, setOverlay] = useState(false)
+  const [hint, setHint] = useState(true)
   const hideTimer = useRef<number | null>(null)
   const isBreath = !!session.breath
 
@@ -27,6 +28,12 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
     if (hideTimer.current) clearTimeout(hideTimer.current)
     setOverlay(false)
   }
+
+  // Teach the interaction: show a brief hint at session start, then fade it.
+  useEffect(() => {
+    const t = window.setTimeout(() => setHint(false), 4500)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => () => void (hideTimer.current && clearTimeout(hideTimer.current)), [])
 
@@ -50,6 +57,18 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
   return (
     <div className="screen" onClick={overlay ? dismiss : summon}>
+      {/* Always-visible exit — a clean pathway home, no discovery required. */}
+      <button
+        aria-label="End session and return home"
+        onClick={(e) => {
+          e.stopPropagation()
+          runtime.endSession()
+        }}
+        style={exitBtn}
+      >
+        ✕
+      </button>
+
       <div style={center}>
         {isBreath ? (
           <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
@@ -75,6 +94,15 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         </div>
       )}
 
+      {/* fading first-run hint */}
+      {hint && !overlay && (
+        <div style={hintRow}>
+          <span style={{ fontSize: 12, color: 'var(--text-ghost)', animation: 'hint-fade 4.5s ease forwards' }}>
+            Tap anywhere for controls · ✕ to end
+          </span>
+        </div>
+      )}
+
       {overlay && (
         <ControlOverlay
           paused={runtime.paused}
@@ -93,13 +121,37 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           inset: 0,
           background: '#000',
           opacity: runtime.blackout,
-          transition: `opacity ${runtime.blackout ? 8000 : 0}ms linear`,
+          transition: `opacity ${runtime.blackout ? runtime.blackoutMs : 0}ms linear`,
           pointerEvents: runtime.blackout ? 'auto' : 'none',
           zIndex: 40,
         }}
       />
+      <style>{`@keyframes hint-fade { 0%,70% { opacity: 1 } 100% { opacity: 0 } }`}</style>
     </div>
   )
+}
+
+const exitBtn: React.CSSProperties = {
+  position: 'absolute',
+  top: 14,
+  right: 16,
+  width: 40,
+  height: 40,
+  borderRadius: 100,
+  background: 'rgba(8,8,16,0.4)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  color: 'var(--text-secondary)',
+  fontSize: 15,
+  zIndex: 35,
+}
+const hintRow: React.CSSProperties = {
+  position: 'absolute',
+  bottom: 18,
+  left: 0,
+  right: 0,
+  textAlign: 'center',
+  pointerEvents: 'none',
 }
 
 const center: React.CSSProperties = {
