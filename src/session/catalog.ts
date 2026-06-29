@@ -192,19 +192,25 @@ export const CATALOG: Session[] = [
     },
   },
 
-  // ── Focus (4) — locked "Coming Soon" in MVP (§6.3) ───────────
-  ...['Clarity', 'Flow State', 'Deep Work', 'Reset'].map(
-    (title, i): Session => ({
-      id: `focus-${i}`,
-      title,
-      group: 'focus',
-      durationMin: 25,
-      palette: 'deepWater',
-      free: false,
-      comingSoon: true,
-      sound: { root: 130, breathCycle: 5, ambientDensity: 0.1, cutoff: 1200, ambient: 'none' },
-    }),
-  ),
+  // ── Chanting (2) — chant voice layered over background music ──
+  {
+    id: 'buddhist-chant',
+    title: 'Buddhist Chant',
+    group: 'chanting',
+    durationMin: 30,
+    palette: 'temple',
+    free: true,
+    sound: { root: 82, breathCycle: 7, ambientDensity: 0.9, cutoff: 620, ambient: 'chant' },
+  },
+  {
+    id: 'hindu-chant',
+    title: 'Hindu Chant',
+    group: 'chanting',
+    durationMin: 30,
+    palette: 'saffron',
+    free: true,
+    sound: { root: 110, breathCycle: 6, ambientDensity: 0.9, cutoff: 760, ambient: 'chant' },
+  },
 ]
 
 export const byId = (id: string) => CATALOG.find((s) => s.id === id)

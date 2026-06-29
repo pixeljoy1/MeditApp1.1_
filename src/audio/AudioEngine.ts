@@ -13,7 +13,7 @@
 
 import { SleepFader } from './SleepFader'
 
-export type AmbientType = 'none' | 'rain' | 'waves' | 'forest' | 'wind' | 'shimmer'
+export type AmbientType = 'none' | 'rain' | 'waves' | 'forest' | 'wind' | 'shimmer' | 'chant'
 
 export interface SessionSound {
   /** Root frequency (Hz) for the foundation pad. */
@@ -275,6 +275,53 @@ export class AudioEngine {
         g.connect(bus)
         this.lfo(1 / 7, 320, bp.frequency, 560)
         this.lfo(1 / 5, 0.16 * d, g.gain, 0.4 * d)
+        break
+      }
+      case 'chant': {
+        // A vowel-formant voice ("om/aah") layered over the background pad.
+        // A sawtooth through three bandpass formants approximates a human chant;
+        // a slow syllabic swell gives the rise & fall of chanting.
+        const voiceGain = ctx.createGain()
+        voiceGain.gain.value = 0
+        voiceGain.connect(bus)
+
+        const saw = ctx.createOscillator()
+        saw.type = 'sawtooth'
+        saw.frequency.value = sound.root
+        this.lfo(5, 4, saw.detune, 0) // gentle vibrato (±4 cents @ 5Hz)
+
+        const formants: [number, number, number][] = [
+          [320, 9, 1.0],
+          [1000, 11, 0.7],
+          [2400, 12, 0.4],
+        ]
+        formants.forEach(([f, q, amt]) => {
+          const bp = ctx.createBiquadFilter()
+          bp.type = 'bandpass'
+          bp.frequency.value = f
+          bp.Q.value = q
+          const fg = ctx.createGain()
+          fg.gain.value = amt
+          saw.connect(bp)
+          bp.connect(fg)
+          fg.connect(voiceGain)
+        })
+        saw.start()
+        this.nodes.push(saw)
+
+        // sub-octave "om" body
+        const sub = ctx.createOscillator()
+        sub.type = 'sine'
+        sub.frequency.value = sound.root / 2
+        const subg = ctx.createGain()
+        subg.gain.value = 0.12 * d
+        sub.connect(subg)
+        subg.connect(voiceGain)
+        sub.start()
+        this.nodes.push(sub)
+
+        // syllabic swell — chant phrasing
+        this.lfo(1 / 4.5, 0.16 * d, voiceGain.gain, 0.26 * d)
         break
       }
       case 'shimmer':

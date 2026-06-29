@@ -37,11 +37,21 @@ export const DEFAULT_SETTINGS: Settings = {
   nightlyPrompt: false,
 }
 
+/** A user-submitted request for a new theme (§ feature). */
+export interface ThemeRequest {
+  id: string
+  name: string
+  mood: string
+  note: string
+  createdAt: number
+}
+
 export interface Persisted {
   settings: Settings
   onboardingComplete: boolean
   premium: boolean
   lastPlayedId: string | null
+  requests: ThemeRequest[]
 }
 
 export const DEFAULT_PERSISTED: Persisted = {
@@ -49,4 +59,5 @@ export const DEFAULT_PERSISTED: Persisted = {
   onboardingComplete: false,
   premium: false,
   lastPlayedId: null,
+  requests: [],
 }

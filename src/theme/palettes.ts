@@ -15,6 +15,8 @@ export type PaletteId =
   | 'tide'
   | 'starfield'
   | 'mountain'
+  | 'saffron'
+  | 'temple'
 
 export interface Palette {
   id: PaletteId
@@ -87,6 +89,18 @@ export const PALETTES: Record<PaletteId, Palette> = {
     name: 'Mountain Pass',
     stops: ['#0A0D14', '#243042', '#4A5A70'], // slate → cool grey-blue
     descriptor: 'Slate · Wind',
+  },
+  saffron: {
+    id: 'saffron',
+    name: 'Saffron',
+    stops: ['#1A0E03', '#5C3A0A', '#C2741A'], // deep amber → saffron gold
+    descriptor: 'Saffron · Chant',
+  },
+  temple: {
+    id: 'temple',
+    name: 'Temple',
+    stops: ['#160608', '#48121A', '#8A3A24'], // maroon → terracotta
+    descriptor: 'Maroon · Chant',
   },
 }
 

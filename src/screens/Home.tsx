@@ -6,16 +6,20 @@
  * landscape, on phone or desktop. No bottom nav (§7.3).
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { CATALOG, byId } from '../session/catalog'
 import { GROUP_LABEL, Session, SessionGroup } from '../session/types'
 import { SessionCard } from '../components/SessionCard'
 import { VersionPill } from '../components/VersionPill'
 import { PullToRefresh } from '../components/PullToRefresh'
+import { AddThemeCard } from '../components/AddThemeCard'
+import { RequestCard } from '../components/RequestCard'
+import { RequestThemeSheet } from '../components/RequestThemeSheet'
 import { useStore } from '../state/store'
 import { greeting } from '../state/util'
+import { emailThemeRequest, makeId } from '../state/themeRequest'
 
-const ROW_ORDER: SessionGroup[] = ['sleep', 'bodyScan', 'breathwork', 'focus']
+const ROW_ORDER: SessionGroup[] = ['sleep', 'chanting', 'bodyScan', 'breathwork']
 
 export function Home({
   onSelect,
@@ -26,8 +30,14 @@ export function Home({
   onPreview: (s: Session) => void
   onLocked: (s: Session) => void
 }) {
-  const { persisted, openSettings } = useStore()
+  const { persisted, openSettings, addRequest } = useStore()
   const name = persisted.settings.name
+  const [requestOpen, setRequestOpen] = useState(false)
+
+  const submitRequest = async (data: { name: string; mood: string; note: string }) => {
+    addRequest({ id: makeId(), createdAt: Date.now(), ...data })
+    return emailThemeRequest({ ...data, from: name || 'anonymous' })
+  }
   const featured = useMemo(
     () => byId(persisted.lastPlayedId ?? 'drift') ?? byId('drift')!,
     [persisted.lastPlayedId],
@@ -97,9 +107,24 @@ export function Home({
             </div>
           ))}
 
+          {/* request a new theme — logged here + emailed to the developer */}
+          <div style={{ marginTop: 26 }}>
+            <div className="label" style={{ marginBottom: 10 }}>
+              Your Themes
+            </div>
+            <div style={grid}>
+              <AddThemeCard onClick={() => setRequestOpen(true)} />
+              {persisted.requests.map((r) => (
+                <RequestCard key={r.id} req={r} />
+              ))}
+            </div>
+          </div>
+
           <div style={{ height: 16 }} />
         </div>
       </PullToRefresh>
+
+      <RequestThemeSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
     </div>
   )
 }

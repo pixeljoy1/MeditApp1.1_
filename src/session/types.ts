@@ -3,7 +3,7 @@
 import { PaletteId } from '../theme/palettes'
 import { SessionSound } from '../audio/AudioEngine'
 
-export type SessionGroup = 'sleep' | 'bodyScan' | 'breathwork' | 'focus'
+export type SessionGroup = 'sleep' | 'bodyScan' | 'breathwork' | 'chanting'
 
 /** A single breath phase. duration in seconds; 0 = skip phase. */
 export interface BreathPhase {
@@ -38,5 +38,5 @@ export const GROUP_LABEL: Record<SessionGroup, string> = {
   sleep: 'Sleep',
   bodyScan: 'Body Scan',
   breathwork: 'Breathwork',
-  focus: 'Focus',
+  chanting: 'Chanting',
 }

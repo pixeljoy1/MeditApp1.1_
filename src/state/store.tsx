@@ -5,7 +5,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { DEFAULT_PERSISTED, Persisted, Screen, Settings, SleepTimer } from './types'
+import { DEFAULT_PERSISTED, Persisted, Screen, Settings, SleepTimer, ThemeRequest } from './types'
 
 const KEY = 'drift.persisted.v1'
 
@@ -40,6 +40,7 @@ interface StoreShape {
   setOnboardingComplete: (v: boolean) => void
   setPremium: (v: boolean) => void
   markPlayed: (id: string) => void
+  addRequest: (req: ThemeRequest) => void
 }
 
 const Ctx = createContext<StoreShape | null>(null)
@@ -83,6 +84,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setPersisted((s) => ({ ...s, onboardingComplete: v })),
       setPremium: (v) => setPersisted((s) => ({ ...s, premium: v })),
       markPlayed: (id) => setPersisted((s) => ({ ...s, lastPlayedId: id })),
+      addRequest: (req) => setPersisted((s) => ({ ...s, requests: [req, ...s.requests] })),
     }),
     [persisted, screen, selectedSessionId, selectedTimer, settingsOpen, patchSettings],
   )
