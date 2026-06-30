@@ -264,17 +264,37 @@ export class AudioEngine {
         break
       }
       case 'wind': {
+        // Mountain wind: continuous airy hiss with irregular gusts — NOT the
+        // regular in/out swell of surf (that's the 'waves' module).
+        const hp = ctx.createBiquadFilter()
+        hp.type = 'highpass'
+        hp.frequency.value = 520
         const bp = ctx.createBiquadFilter()
         bp.type = 'bandpass'
-        bp.frequency.value = 520
-        bp.Q.value = 0.5
+        bp.frequency.value = 1200
+        bp.Q.value = 0.6
         const g = ctx.createGain()
-        g.gain.value = 0.4 * d
-        this.noiseSource().connect(bp)
+        g.gain.value = 0.2 * d
+        this.noiseSource().connect(hp)
+        hp.connect(bp)
         bp.connect(g)
         g.connect(bus)
-        this.lfo(1 / 7, 320, bp.frequency, 560)
-        this.lfo(1 / 5, 0.16 * d, g.gain, 0.4 * d)
+        // slow movement of the airy band (timbre, not amplitude)
+        this.lfo(1 / 13, 520, bp.frequency, 1200)
+        // irregular gusts: random amplitude rises at uneven intervals
+        const base = 0.16 * d
+        const gust = () => {
+          if (!this.current) return
+          const now = ctx.currentTime
+          const peak = (0.3 + Math.random() * 0.5) * d
+          const dur = 2.5 + Math.random() * 3.5
+          g.gain.cancelScheduledValues(now)
+          g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), now)
+          g.gain.linearRampToValueAtTime(peak, now + dur * 0.4)
+          g.gain.linearRampToValueAtTime(base, now + dur)
+          this.timers.push(window.setTimeout(gust, (dur + Math.random() * 3) * 1000))
+        }
+        this.timers.push(window.setTimeout(gust, 800))
         break
       }
       case 'chant': {

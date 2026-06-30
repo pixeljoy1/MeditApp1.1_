@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react'
 import { Session } from '../session/types'
 import { SessionRuntime } from '../state/useSession'
 import { ControlOverlay } from '../components/ControlOverlay'
+import { ConfirmDialog } from '../components/ConfirmDialog'
+import { SessionIntro } from '../components/SessionIntro'
 import { BreathRing } from '../components/BreathRing'
 import { Equalizer } from '../components/Equalizer'
 import { SmoothTime } from '../components/SmoothTime'
@@ -20,6 +22,8 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   const [overlay, setOverlay] = useState(false)
   const [hint, setHint] = useState(true)
   const [showEq, setShowEq] = useState(true)
+  const [intro, setIntro] = useState(true)
+  const [endConfirm, setEndConfirm] = useState(false)
   const isBreath = !!session.breath
 
   // The control modal is also the pause state: opening it pauses the session
@@ -78,10 +82,11 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
       {/* Always-visible exit — labeled so it can't be missed. */}
       <button
-        aria-label="End session and return home"
+        aria-label="End session"
         onClick={(e) => {
           e.stopPropagation()
-          runtime.endSession()
+          if (!runtime.paused) runtime.togglePause()
+          setEndConfirm(true)
         }}
         style={endBtn}
       >
@@ -151,8 +156,30 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         onTogglePause={runtime.togglePause}
         onVolume={runtime.setVolume}
         onAddTime={runtime.addTen}
-        onEnd={runtime.endSession}
+        onEnd={() => {
+          setOverlay(false)
+          setEndConfirm(true)
+        }}
       />
+
+      {/* End-session confirmation — same calm language as the pause modal */}
+      <ConfirmDialog
+        open={endConfirm}
+        title="End session?"
+        message="We'll gently fade the sound and the light, then take you home."
+        confirmLabel="End"
+        cancelLabel="Stay"
+        onConfirm={() => {
+          setEndConfirm(false)
+          runtime.endSession()
+        }}
+        onCancel={() => {
+          setEndConfirm(false)
+          if (runtime.paused) runtime.togglePause()
+        }}
+      />
+
+      {intro && <SessionIntro onDone={() => setIntro(false)} />}
 
       {/* fade-to-black overlay (§5.3 / §8.3) */}
       <div

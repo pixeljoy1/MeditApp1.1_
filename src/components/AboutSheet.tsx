@@ -4,14 +4,27 @@
  * footer link), but complete.
  */
 
+import { useEffect } from 'react'
 import { Sheet } from './Sheet'
 import { APP_VERSION } from '../version'
 
-export function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export type AboutFocus = 'about' | 'legal' | 'sources'
+
+export function AboutSheet({ open, onClose, focus }: { open: boolean; onClose: () => void; focus?: AboutFocus }) {
+  // scroll to the requested section once the sheet has opened
+  useEffect(() => {
+    if (!open || !focus) return
+    const id = focus === 'legal' ? 'about-legal' : focus === 'sources' ? 'about-sources' : 'about-top'
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 420)
+    return () => clearTimeout(t)
+  }, [open, focus])
+
   return (
     <Sheet open={open} onClose={onClose} title="About & Legal">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontSize: 13, lineHeight: 1.55, color: 'var(--text-secondary)' }}>
-        <Block title="Wellness disclaimer">
+      <div id="about-top" style={{ display: 'flex', flexDirection: 'column', gap: 20, fontSize: 13, lineHeight: 1.55, color: 'var(--text-secondary)' }}>
+        <Block id="about-legal" title="Wellness disclaimer">
           Drift is a relaxation aid, not a medical device. It is not intended to diagnose, treat,
           cure, or prevent any condition, and is not a substitute for professional care for sleep
           disorders, anxiety, or any health concern. If sleep problems persist, please consult a
@@ -23,7 +36,7 @@ export function AboutSheet({ open, onClose }: { open: boolean; onClose: () => vo
           chant voices). No copyrighted recordings or third-party samples are used.
         </Block>
 
-        <Block title="Texts &amp; citations">
+        <Block id="about-sources" title="Texts &amp; citations">
           Chant subtitles are traditional, public-domain passages, reproduced with their sources:
           <ul style={list}>
             <li>Dhammapada, vv. 1, 5, 277 — Pāli Canon (public domain).</li>
@@ -58,9 +71,9 @@ export function AboutSheet({ open, onClose }: { open: boolean; onClose: () => vo
   )
 }
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div id={id} style={{ scrollMarginTop: 8 }}>
       <div className="label" style={{ marginBottom: 6, color: 'var(--text-primary)' }}>
         {title}
       </div>

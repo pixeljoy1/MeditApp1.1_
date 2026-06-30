@@ -15,7 +15,7 @@ import { PullToRefresh } from '../components/PullToRefresh'
 import { AddThemeCard } from '../components/AddThemeCard'
 import { RequestCard } from '../components/RequestCard'
 import { RequestThemeSheet } from '../components/RequestThemeSheet'
-import { AboutSheet } from '../components/AboutSheet'
+import { AboutSheet, AboutFocus } from '../components/AboutSheet'
 import { MakersPage } from '../components/MakersPage'
 import wizardLogo from '../assets/wizard-footer-logo.png'
 import { Pill } from '../components/Pill'
@@ -42,7 +42,12 @@ export function Home({
   const name = persisted.settings.name
   const [requestOpen, setRequestOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [aboutFocus, setAboutFocus] = useState<AboutFocus>('about')
   const [makersOpen, setMakersOpen] = useState(false)
+  const openAbout = (f: AboutFocus) => {
+    setAboutFocus(f)
+    setAboutOpen(true)
+  }
   const [removeTarget, setRemoveTarget] = useState<ThemeRequest | null>(null)
   // fresh invitation line each visit
   const invitation = useState(() => nextInvitation())[0]
@@ -143,12 +148,19 @@ export function Home({
 
           {/* discreet footer */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '40px 0 18px' }}>
-            <button
-              onClick={() => setAboutOpen(true)}
-              style={{ fontSize: 12, color: 'var(--text-secondary)', letterSpacing: 0.3 }}
-            >
-              About · Legal · Sources
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+              <button onClick={() => openAbout('about')} style={footerLink}>
+                About
+              </button>
+              <span style={{ color: 'var(--text-ghost)' }}>·</span>
+              <button onClick={() => openAbout('legal')} style={footerLink}>
+                Legal
+              </button>
+              <span style={{ color: 'var(--text-ghost)' }}>·</span>
+              <button onClick={() => openAbout('sources')} style={footerLink}>
+                Sources
+              </button>
+            </div>
             <button
               onClick={() => setMakersOpen(true)}
               aria-label="About the makers, Wizard Communications"
@@ -168,7 +180,7 @@ export function Home({
       </PullToRefresh>
 
       <RequestThemeSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
-      <AboutSheet open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <AboutSheet open={aboutOpen} onClose={() => setAboutOpen(false)} focus={aboutFocus} />
       <MakersPage open={makersOpen} onClose={() => setMakersOpen(false)} />
 
       {/* confirm removal of a logged request */}
@@ -195,6 +207,12 @@ export function Home({
   )
 }
 
+const footerLink: React.CSSProperties = {
+  fontSize: 12,
+  color: 'var(--text-secondary)',
+  letterSpacing: 0.3,
+  padding: '4px 2px',
+}
 const topBar: React.CSSProperties = {
   flex: '0 0 auto',
   height: 52,
