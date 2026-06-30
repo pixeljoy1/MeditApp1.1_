@@ -1,10 +1,10 @@
 /**
  * Sheet — bottom sheet (§7.3 / §8.4). 28dp top corners (§4.4), frosted surface.
- * Used for Settings (§9) and the Paywall (§14). Springs up on open and slides
- * back down on close — both directions animate (kept mounted during exit).
+ * Springs up on open, slides down on close, and can be dismissed by swiping it
+ * down (drag from the top of the sheet past a threshold).
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { radius } from '../theme/tokens'
 
 interface Props {
@@ -14,14 +14,28 @@ interface Props {
   title?: string
 }
 
+const DISMISS = 110
+
 export function Sheet({ open, onClose, children, title }: Props) {
   const [render, setRender] = useState(open)
   const [shown, setShown] = useState(false)
+  const [drag, setDrag] = useState(0)
+
+  const cardRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef(0)
+  const dragging = useRef(false)
+  const startY = useRef(0)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
+  const setDragV = (v: number) => {
+    dragRef.current = v
+    setDrag(v)
+  }
 
   useEffect(() => {
     if (open) {
       setRender(true)
-      // mount closed, then flip on next frame so the slide-up animates
       const r = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)))
       return () => cancelAnimationFrame(r)
     } else {
@@ -31,7 +45,47 @@ export function Sheet({ open, onClose, children, title }: Props) {
     }
   }, [open])
 
+  // swipe-down-to-dismiss
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const onStart = (e: TouchEvent) => {
+      if (el.scrollTop <= 0) {
+        startY.current = e.touches[0].clientY
+        dragging.current = true
+      }
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!dragging.current) return
+      const dy = e.touches[0].clientY - startY.current
+      if (dy > 0 && el.scrollTop <= 0) {
+        e.preventDefault()
+        setDragV(dy)
+      } else if (dy <= 0) {
+        setDragV(0)
+      }
+    }
+    const onEnd = () => {
+      if (!dragging.current) return
+      dragging.current = false
+      if (dragRef.current > DISMISS) onCloseRef.current()
+      setDragV(0)
+    }
+    el.addEventListener('touchstart', onStart, { passive: false })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd)
+    el.addEventListener('touchcancel', onEnd)
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+      el.removeEventListener('touchcancel', onEnd)
+    }
+  }, [render])
+
   if (!render) return null
+
+  const translate = shown ? `translateY(${drag}px)` : 'translateY(100%)'
 
   return (
     <div
@@ -48,6 +102,7 @@ export function Sheet({ open, onClose, children, title }: Props) {
       }}
     >
       <div
+        ref={cardRef}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%',
@@ -56,19 +111,14 @@ export function Sheet({ open, onClose, children, title }: Props) {
           background: 'var(--surface-raised)',
           borderTopLeftRadius: radius.sheet,
           borderTopRightRadius: radius.sheet,
-          padding: '20px 24px 32px',
-          transform: shown ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 360ms cubic-bezier(0.22,1,0.36,1)',
+          padding: '14px 24px 32px',
+          transform: translate,
+          transition: dragging.current ? 'none' : 'transform 360ms cubic-bezier(0.22,1,0.36,1)',
         }}
       >
+        {/* grab handle */}
         <div
-          style={{
-            width: 36,
-            height: 4,
-            borderRadius: 2,
-            background: 'var(--text-ghost)',
-            margin: '0 auto 16px',
-          }}
+          style={{ width: 40, height: 5, borderRadius: 3, background: 'var(--text-ghost)', margin: '4px auto 16px' }}
         />
         {title && (
           <h2 className="serif" style={{ fontSize: 28, margin: '0 0 16px' }}>

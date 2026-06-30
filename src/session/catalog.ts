@@ -81,6 +81,7 @@ export const CATALOG: Session[] = [
     durationMin: 50,
     palette: 'starfield',
     free: true,
+    stars: true,
     sound: { root: 120, breathCycle: 7, ambientDensity: 0.2, cutoff: 1100, ambient: 'shimmer' },
   },
   {
@@ -201,6 +202,16 @@ export const CATALOG: Session[] = [
     palette: 'temple',
     free: true,
     sound: { root: 82, breathCycle: 7, ambientDensity: 0.9, cutoff: 620, ambient: 'chant' },
+    subtitles: [
+      'Oṃ maṇi padme hūṃ',
+      'All conditioned things are impermanent.\n— Dhammapada 277',
+      'Hatred is never appeased by hatred;\nby love alone is it healed.\n— Dhammapada 5',
+      'What we think, we become.\n— Dhammapada 1',
+      'Gate gate pāragate pārasaṃgate bodhi svāhā.\n— Heart Sūtra',
+      'Peace comes from within.\nDo not seek it without.',
+      'Let go, and be still.',
+      'This too shall pass.',
+    ],
   },
   {
     id: 'hindu-chant',
@@ -210,6 +221,16 @@ export const CATALOG: Session[] = [
     palette: 'saffron',
     free: true,
     sound: { root: 110, breathCycle: 6, ambientDensity: 0.9, cutoff: 760, ambient: 'chant' },
+    subtitles: [
+      'Oṃ',
+      'Asato mā sad gamaya —\nLead me from the unreal to the real.\n— Bṛhadāraṇyaka Upaniṣad 1.3.28',
+      'Tamaso mā jyotir gamaya —\nLead me from darkness to light.',
+      'Mṛtyor mā amṛtaṃ gamaya —\nLead me from death to immortality.',
+      'Tat tvam asi —\nThou art That.\n— Chāndogya Upaniṣad 6.8.7',
+      'Ahaṃ brahmāsmi —\nI am Brahman.\n— Bṛhadāraṇyaka Upaniṣad 1.4.10',
+      'Sarvaṃ khalvidaṃ brahma —\nAll this is Brahman.\n— Chāndogya Upaniṣad 3.14.1',
+      'Oṃ śāntiḥ śāntiḥ śāntiḥ —\nPeace, peace, peace.',
+    ],
   },
 ]
 

@@ -1,7 +1,6 @@
 /**
- * Settings — Drift spec §9. Bottom sheet, three sections. No notification settings.
- * Also exposes a Premium toggle here (prototype-only) so reviewers can unlock the
- * full catalog / unlimited timer without a real billing flow.
+ * Settings — simplified. Just the essentials: who you are, the look, how long,
+ * and the prototype premium unlock. Swipe the sheet down to dismiss.
  */
 
 import { Sheet } from '../components/Sheet'
@@ -16,8 +15,8 @@ export function Settings() {
 
   return (
     <Sheet open={settingsOpen} onClose={() => openSettings(false)} title="Settings">
-      <Section title="Personalization">
-        <Row label="Display name">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <Row label="Your name">
           <input
             value={s.name}
             onChange={(e) => patchSettings({ name: e.target.value })}
@@ -25,13 +24,14 @@ export function Settings() {
             style={textInput}
           />
         </Row>
-        <Row label="Preferred palette">
+
+        <Row label="Palette">
           <select
             value={s.preferredPalette}
             onChange={(e) => patchSettings({ preferredPalette: e.target.value as any })}
             style={select}
           >
-            <option value="auto">Auto (from session)</option>
+            <option value="auto">Auto</option>
             {PALETTE_ORDER.map((p) => (
               <option key={p} value={p}>
                 {PALETTES[p].name}
@@ -39,22 +39,7 @@ export function Settings() {
             ))}
           </select>
         </Row>
-        <Row label="Default session length">
-          <select
-            value={s.defaultSessionLength}
-            onChange={(e) => patchSettings({ defaultSessionLength: Number(e.target.value) })}
-            style={select}
-          >
-            {[10, 20, 30, 45, 60].map((m) => (
-              <option key={m} value={m}>
-                {m} min
-              </option>
-            ))}
-          </select>
-        </Row>
-      </Section>
 
-      <Section title="Sleep Behavior">
         <Row label="Default sleep timer">
           <select
             value={String(s.defaultSleepTimer)}
@@ -72,46 +57,14 @@ export function Settings() {
             ))}
           </select>
         </Row>
-        <Toggle label="Screen off after session ends" value={s.screenOffAfter} onChange={(v) => patchSettings({ screenOffAfter: v })} />
-        <Toggle label="Bedtime mode (mute UI sounds after)" value={s.bedtimeMode} onChange={(v) => patchSettings({ bedtimeMode: v })} />
-      </Section>
 
-      <Section title="Audio">
-        <Toggle label="Preload sessions on Wi-Fi only" value={s.preloadWifiOnly} onChange={(v) => patchSettings({ preloadWifiOnly: v })} />
-        <Row label="Audio quality">
-          <select
-            value={s.audioQuality}
-            onChange={(e) => patchSettings({ audioQuality: e.target.value as any })}
-            style={select}
-            disabled={!persisted.premium && s.audioQuality === 'standard'}
-          >
-            <option value="standard">Standard · 320kbps</option>
-            <option value="flac" disabled={!persisted.premium}>
-              High · FLAC (Premium)
-            </option>
-          </select>
-        </Row>
-        <Toggle label="Nightly “Ready to sleep?” prompt" value={s.nightlyPrompt} onChange={(v) => patchSettings({ nightlyPrompt: v })} />
-      </Section>
-
-      <Section title="Account">
-        <Toggle label="Drift Premium (prototype unlock)" value={persisted.premium} onChange={setPremium} />
-        <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '4px 0 0' }}>
-          No ads. Ever. Sleep is sacred.
-        </p>
-      </Section>
-    </Sheet>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <div className="label" style={{ marginBottom: 12 }}>
-        {title}
+        <Toggle label="Drift Premium" value={persisted.premium} onChange={setPremium} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{children}</div>
-    </div>
+
+      <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '20px 0 0', textAlign: 'center' }}>
+        No ads. Ever. Sleep is sacred.
+      </p>
+    </Sheet>
   )
 }
 

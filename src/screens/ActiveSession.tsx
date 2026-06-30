@@ -11,6 +11,8 @@ import { ControlOverlay } from '../components/ControlOverlay'
 import { BreathRing } from '../components/BreathRing'
 import { Equalizer } from '../components/Equalizer'
 import { SmoothTime } from '../components/SmoothTime'
+import { Stars } from '../components/Stars'
+import { Subtitles } from '../components/Subtitles'
 import { breathStateAt } from '../session/BreathController'
 import { color } from '../theme/tokens'
 
@@ -86,8 +88,13 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         ✕
       </button>
 
+      {session.stars && <Stars opacity={0.7 + 0.3 * runtime.timerOpacity} />}
+
       <div style={center}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+          {session.subtitles && (
+            <Subtitles lines={session.subtitles} opacity={0.7 + 0.3 * runtime.timerOpacity} />
+          )}
           {isBreath ? (
             <BreathRing state={breathStateAt(session.breath!, runtime.elapsedSec)} accent={color.accent} />
           ) : (

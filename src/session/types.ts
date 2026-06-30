@@ -28,6 +28,10 @@ export interface Session {
   sound: SessionSound
   /** Present only for breathwork sessions (§8.5). */
   breath?: BreathPattern
+  /** Render a twinkling starfield overlay (e.g. Starfield). */
+  stars?: boolean
+  /** Recycling mindful subtitles (e.g. chant sayings from the Upanishads). */
+  subtitles?: string[]
   /** Free tier sessions (§14): Drift, Coastal Night, Box Breath. */
   free: boolean
   /** Focus group is locked "Coming Soon" in MVP (§6.3). */
