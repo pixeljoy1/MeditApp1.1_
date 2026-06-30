@@ -19,7 +19,7 @@ interface Props {
 
 // monotone white segments
 function segColor(lit: boolean) {
-  return lit ? 'rgba(244,243,250,0.98)' : 'rgba(240,238,248,0.12)'
+  return lit ? 'rgba(248,247,252,1)' : 'rgba(240,238,248,0.24)'
 }
 
 export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, height = 64, running = true }: Props) {
@@ -64,8 +64,9 @@ export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, 
       g.globalAlpha = op
 
       for (let b = 0; b < bars; b++) {
-        // sample across the musical part of the spectrum
-        const raw = freq ? freq[Math.floor((b / bars) * (freq.length * 0.7))] / 255 : 0
+        // sample across the musical part of the spectrum (boosted sensitivity)
+        const sample = freq ? freq[Math.floor((b / bars) * (freq.length * 0.7))] / 255 : 0
+        const raw = Math.min(1, sample * 1.8)
         level[b] += (raw - level[b]) * 0.22
         // peak hold falls slowly
         if (level[b] > peak[b]) peak[b] = level[b]

@@ -15,6 +15,7 @@ import { PullToRefresh } from '../components/PullToRefresh'
 import { AddThemeCard } from '../components/AddThemeCard'
 import { RequestCard } from '../components/RequestCard'
 import { RequestThemeSheet } from '../components/RequestThemeSheet'
+import { AboutSheet } from '../components/AboutSheet'
 import { Pill } from '../components/Pill'
 import { Sheet } from '../components/Sheet'
 import { useStore } from '../state/store'
@@ -38,6 +39,7 @@ export function Home({
   const { persisted, openSettings, addRequest, removeRequest } = useStore()
   const name = persisted.settings.name
   const [requestOpen, setRequestOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<ThemeRequest | null>(null)
   // fresh invitation line each visit
   const invitation = useState(() => nextInvitation())[0]
@@ -136,11 +138,20 @@ export function Home({
             </div>
           </div>
 
-          <div style={{ height: 16 }} />
+          {/* discreet footer */}
+          <div style={{ textAlign: 'center', padding: '36px 0 14px' }}>
+            <button
+              onClick={() => setAboutOpen(true)}
+              style={{ fontSize: 11, color: 'var(--text-ghost)', letterSpacing: 0.3 }}
+            >
+              About · Legal · Sources
+            </button>
+          </div>
         </div>
       </PullToRefresh>
 
       <RequestThemeSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
+      <AboutSheet open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       {/* confirm removal of a logged request */}
       <Sheet open={!!removeTarget} onClose={() => setRemoveTarget(null)} title="Remove request?">
