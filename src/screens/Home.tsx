@@ -16,6 +16,8 @@ import { AddThemeCard } from '../components/AddThemeCard'
 import { RequestCard } from '../components/RequestCard'
 import { RequestThemeSheet } from '../components/RequestThemeSheet'
 import { AboutSheet } from '../components/AboutSheet'
+import { MakersPage } from '../components/MakersPage'
+import wizardLogo from '../assets/wizard-footer-logo.png'
 import { Pill } from '../components/Pill'
 import { Sheet } from '../components/Sheet'
 import { useStore } from '../state/store'
@@ -40,6 +42,7 @@ export function Home({
   const name = persisted.settings.name
   const [requestOpen, setRequestOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [makersOpen, setMakersOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<ThemeRequest | null>(null)
   // fresh invitation line each visit
   const invitation = useState(() => nextInvitation())[0]
@@ -139,12 +142,26 @@ export function Home({
           </div>
 
           {/* discreet footer */}
-          <div style={{ textAlign: 'center', padding: '36px 0 14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '40px 0 16px' }}>
             <button
               onClick={() => setAboutOpen(true)}
               style={{ fontSize: 11, color: 'var(--text-ghost)', letterSpacing: 0.3 }}
             >
               About · Legal · Sources
+            </button>
+            <button
+              onClick={() => setMakersOpen(true)}
+              aria-label="About the makers, Wizard Communications"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, opacity: 0.5 }}
+            >
+              <img
+                src={wizardLogo}
+                alt="Wizard Communications"
+                style={{ height: 15, filter: 'brightness(0) invert(1)', opacity: 0.7 }}
+              />
+              <span style={{ fontSize: 10, color: 'var(--text-ghost)', letterSpacing: 0.5 }}>
+                CRAFTED IN KOLKATA
+              </span>
             </button>
           </div>
         </div>
@@ -152,6 +169,7 @@ export function Home({
 
       <RequestThemeSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
       <AboutSheet open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <MakersPage open={makersOpen} onClose={() => setMakersOpen(false)} />
 
       {/* confirm removal of a logged request */}
       <Sheet open={!!removeTarget} onClose={() => setRemoveTarget(null)} title="Remove request?">
