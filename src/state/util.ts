@@ -12,6 +12,34 @@ export function greeting(now = new Date()): string {
   return 'Take a breath'
 }
 
+/** Rotating invitation lines — a fresh one each visit (≥10 before any repeat). */
+const INVITATIONS = [
+  'What do you need tonight?',
+  'Let the day go.',
+  'How shall we wind down?',
+  'Ready to soften into sleep?',
+  'Let your shoulders drop.',
+  'Breathe out the day.',
+  "What would feel good right now?",
+  "Let's quiet the noise.",
+  'Set the day down for a while.',
+  'Drift somewhere gentle?',
+  'Nothing to do but rest.',
+  'Time to come back to yourself.',
+]
+
+/** Returns the next invitation line, cycling so all are shown before repeating. */
+export function nextInvitation(): string {
+  let i = 0
+  try {
+    i = parseInt(localStorage.getItem('drift.invite.idx') || '0', 10) || 0
+    localStorage.setItem('drift.invite.idx', String((i + 1) % INVITATIONS.length))
+  } catch {
+    i = Math.floor(Math.random() * INVITATIONS.length)
+  }
+  return INVITATIONS[i % INVITATIONS.length]
+}
+
 /** Resolve the palette actually used: preference overrides session default (§9.1). */
 export function effectivePalette(session: Session, settings: Settings): PaletteId {
   return settings.preferredPalette === 'auto' ? session.palette : settings.preferredPalette

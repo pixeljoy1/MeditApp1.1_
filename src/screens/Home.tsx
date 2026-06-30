@@ -15,9 +15,12 @@ import { PullToRefresh } from '../components/PullToRefresh'
 import { AddThemeCard } from '../components/AddThemeCard'
 import { RequestCard } from '../components/RequestCard'
 import { RequestThemeSheet } from '../components/RequestThemeSheet'
+import { Pill } from '../components/Pill'
+import { Sheet } from '../components/Sheet'
 import { useStore } from '../state/store'
-import { greeting } from '../state/util'
+import { greeting, nextInvitation } from '../state/util'
 import { emailThemeRequest, makeId } from '../state/themeRequest'
+import { ThemeRequest } from '../state/types'
 
 const ROW_ORDER: SessionGroup[] = ['sleep', 'chanting', 'bodyScan', 'breathwork']
 
@@ -25,14 +28,19 @@ export function Home({
   onSelect,
   onPreview,
   onLocked,
+  onAutoStart,
 }: {
   onSelect: (s: Session) => void
   onPreview: (s: Session) => void
   onLocked: (s: Session) => void
+  onAutoStart: () => void
 }) {
-  const { persisted, openSettings, addRequest } = useStore()
+  const { persisted, openSettings, addRequest, removeRequest } = useStore()
   const name = persisted.settings.name
   const [requestOpen, setRequestOpen] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState<ThemeRequest | null>(null)
+  // fresh invitation line each visit
+  const invitation = useState(() => nextInvitation())[0]
 
   const submitRequest = async (data: { name: string; mood: string; note: string }) => {
     addRequest({ id: makeId(), createdAt: Date.now(), ...data })
@@ -72,13 +80,21 @@ export function Home({
       {/* scrollable content with pull-to-refresh */}
       <PullToRefresh style={scroll}>
         <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
-          <h1 className="serif" style={{ fontSize: 30, margin: '4px 0 2px' }}>
+          <div className="label" style={{ marginBottom: 6 }}>
             {greeting()}
             {name ? `, ${name}` : ''}
+          </div>
+          <h1 className="serif" style={{ fontSize: 32, margin: '0 0 20px', lineHeight: 1.12, maxWidth: 520 }}>
+            {invitation}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', margin: '0 0 20px', fontSize: 15 }}>
-            What do you need tonight?
-          </p>
+
+          {/* fast-track entry */}
+          <Pill onClick={onAutoStart} variant="ghost" style={{ minHeight: 46 }}>
+            ✦&nbsp;&nbsp;Decide for me
+          </Pill>
+
+          {/* breathing space after the greeting */}
+          <div style={{ height: 40 }} />
 
           {/* featured — continue last played */}
           <div className="label" style={{ marginBottom: 10 }}>
@@ -115,7 +131,7 @@ export function Home({
             <div style={grid}>
               <AddThemeCard onClick={() => setRequestOpen(true)} />
               {persisted.requests.map((r) => (
-                <RequestCard key={r.id} req={r} />
+                <RequestCard key={r.id} req={r} onLongPress={setRemoveTarget} />
               ))}
             </div>
           </div>
@@ -125,6 +141,27 @@ export function Home({
       </PullToRefresh>
 
       <RequestThemeSheet open={requestOpen} onClose={() => setRequestOpen(false)} onSubmit={submitRequest} />
+
+      {/* confirm removal of a logged request */}
+      <Sheet open={!!removeTarget} onClose={() => setRemoveTarget(null)} title="Remove request?">
+        <p style={{ color: 'var(--text-secondary)', fontSize: 15, margin: '0 0 20px' }}>
+          Remove “{removeTarget?.name}” from your requests? This can't be undone.
+        </p>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Pill variant="ghost" full onClick={() => setRemoveTarget(null)}>
+            Keep
+          </Pill>
+          <Pill
+            full
+            onClick={() => {
+              if (removeTarget) removeRequest(removeTarget.id)
+              setRemoveTarget(null)
+            }}
+          >
+            Remove
+          </Pill>
+        </div>
+      </Sheet>
     </div>
   )
 }

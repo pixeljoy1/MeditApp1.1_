@@ -98,8 +98,11 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           <div
             style={{
               overflow: 'hidden',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
               maxHeight: showEq ? 72 : 0,
-              opacity: showEq ? 0.3 + 0.7 * runtime.timerOpacity : 0,
+              opacity: showEq ? 0.7 + 0.3 * runtime.timerOpacity : 0,
               transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
               transition:
                 'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',

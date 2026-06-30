@@ -20,9 +20,9 @@ import { Banner } from './components/Banner'
 import { useStore } from './state/store'
 import { useSession, SessionRuntime } from './state/useSession'
 import { Session } from './session/types'
-import { byId } from './session/catalog'
+import { byId, CATALOG } from './session/catalog'
 import { audioEngine } from './audio/AudioEngine'
-import { effectivePalette, prefersReducedMotion } from './state/util'
+import { effectivePalette, isLocked, prefersReducedMotion } from './state/util'
 import { SleepTimer } from './state/types'
 
 type SampleFn = SessionRuntime['sample']
@@ -68,6 +68,18 @@ export default function App() {
   )
 
   const handleLocked = useCallback((s: Session) => setLockedSession(s), [])
+
+  // "Decide for me" — pick a calming sleep theme and drop straight into it.
+  const handleAutoStart = useCallback(() => {
+    const pool = CATALOG.filter((s) => s.group === 'sleep' && !isLocked(s, persisted.premium))
+    const pick = pool[Math.floor(Math.random() * pool.length)] ?? byId('drift')!
+    if (previewTimer.current) clearTimeout(previewTimer.current)
+    audioEngine.stop()
+    selectSession(pick.id)
+    controller.setPalette(effectivePalette(pick, persisted.settings))
+    markPlayed(pick.id)
+    go('session')
+  }, [persisted.premium, persisted.settings, selectSession, controller, markPlayed, go])
 
   const beginSession = useCallback(() => {
     if (!selected) return
@@ -142,7 +154,12 @@ export default function App() {
         {display === 'onboarding' && <Onboarding onDone={onboardingDone} />}
 
         {display === 'home' && (
-          <Home onSelect={handleSelect} onPreview={handlePreview} onLocked={handleLocked} />
+          <Home
+            onSelect={handleSelect}
+            onPreview={handlePreview}
+            onLocked={handleLocked}
+            onAutoStart={handleAutoStart}
+          />
         )}
 
         {display === 'preplay' && selected && (

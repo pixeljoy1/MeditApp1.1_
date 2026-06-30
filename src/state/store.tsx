@@ -41,6 +41,7 @@ interface StoreShape {
   setPremium: (v: boolean) => void
   markPlayed: (id: string) => void
   addRequest: (req: ThemeRequest) => void
+  removeRequest: (id: string) => void
 }
 
 const Ctx = createContext<StoreShape | null>(null)
@@ -85,6 +86,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setPremium: (v) => setPersisted((s) => ({ ...s, premium: v })),
       markPlayed: (id) => setPersisted((s) => ({ ...s, lastPlayedId: id })),
       addRequest: (req) => setPersisted((s) => ({ ...s, requests: [req, ...s.requests] })),
+      removeRequest: (id) => setPersisted((s) => ({ ...s, requests: s.requests.filter((r) => r.id !== id) })),
     }),
     [persisted, screen, selectedSessionId, selectedTimer, settingsOpen, patchSettings],
   )

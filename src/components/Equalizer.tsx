@@ -19,7 +19,7 @@ interface Props {
 
 // monotone white segments
 function segColor(lit: boolean) {
-  return lit ? 'rgba(240,238,248,0.85)' : 'rgba(240,238,248,0.07)'
+  return lit ? 'rgba(244,243,250,0.98)' : 'rgba(240,238,248,0.12)'
 }
 
 export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, height = 64, running = true }: Props) {
@@ -89,5 +89,5 @@ export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, 
     return () => cancelAnimationFrame(raf)
   }, [bars, segments, width, height])
 
-  return <canvas ref={ref} style={{ width, height, display: 'block' }} aria-hidden />
+  return <canvas ref={ref} style={{ width, height, display: 'block', margin: '0 auto' }} aria-hidden />
 }
