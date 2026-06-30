@@ -142,25 +142,25 @@ export function Home({
           </div>
 
           {/* discreet footer */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '40px 0 16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '40px 0 18px' }}>
             <button
               onClick={() => setAboutOpen(true)}
-              style={{ fontSize: 11, color: 'var(--text-ghost)', letterSpacing: 0.3 }}
+              style={{ fontSize: 12, color: 'var(--text-secondary)', letterSpacing: 0.3 }}
             >
               About · Legal · Sources
             </button>
             <button
               onClick={() => setMakersOpen(true)}
               aria-label="About the makers, Wizard Communications"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, opacity: 0.5 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
             >
               <img
                 src={wizardLogo}
                 alt="Wizard Communications"
-                style={{ height: 15, filter: 'brightness(0) invert(1)', opacity: 0.7 }}
+                style={{ height: 20, filter: 'brightness(0) invert(1)', opacity: 0.95 }}
               />
-              <span style={{ fontSize: 10, color: 'var(--text-ghost)', letterSpacing: 0.5 }}>
-                CRAFTED IN KOLKATA
+              <span style={{ fontSize: 10, color: 'var(--text-secondary)', letterSpacing: 0.6 }}>
+                CRAFTED IN KOLKATA →
               </span>
             </button>
           </div>

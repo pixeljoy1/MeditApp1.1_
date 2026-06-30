@@ -1,13 +1,12 @@
 /**
- * Onboarding — Drift spec §10. Three screens, no account required.
- *   1. Name   2. Intent (sets default ordering, not locked)   3. Sleep timer → start
+ * Onboarding — Drift spec §10, trimmed to two screens, no account required.
+ *   1. Name   2. Intent → start (sleep timer uses the default; tweakable later)
  */
 
 import { useMemo, useState } from 'react'
 import { GradientCanvas } from '../gradient/GradientCanvas'
 import { GradientController } from '../gradient/GradientController'
 import { Pill } from '../components/Pill'
-import { TimerPicker } from '../components/TimerPicker'
 import { useStore } from '../state/store'
 import { SleepTimer } from '../state/types'
 import { radius } from '../theme/tokens'
@@ -16,16 +15,21 @@ import { haptic } from '../state/util'
 type Intent = 'asleep' | 'wind' | 'stress'
 
 export function Onboarding({ onDone }: { onDone: (timer: SleepTimer) => void }) {
-  const { patchSettings, setOnboardingComplete } = useStore()
+  const { persisted, patchSettings, setOnboardingComplete } = useStore()
   const controller = useMemo(() => new GradientController('dusk'), [])
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [, setIntent] = useState<Intent | null>(null)
-  const [timer, setTimer] = useState<SleepTimer>(45)
 
   const next = () => {
     haptic.light()
     setStep((s) => s + 1)
+  }
+
+  const finish = (intent: Intent) => {
+    setIntent(intent)
+    setOnboardingComplete(true)
+    onDone(persisted.settings.defaultSleepTimer)
   }
 
   return (
@@ -70,10 +74,7 @@ export function Onboarding({ onDone }: { onDone: (timer: SleepTimer) => void }) 
               ).map(([id, label]) => (
                 <button
                   key={id}
-                  onClick={() => {
-                    setIntent(id)
-                    next()
-                  }}
+                  onClick={() => finish(id)}
                   style={{
                     minHeight: 48,
                     padding: '0 22px',
@@ -88,26 +89,6 @@ export function Onboarding({ onDone }: { onDone: (timer: SleepTimer) => void }) 
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div style={panel}>
-            <h1 className="serif" style={{ fontSize: 36, margin: 0 }}>
-              Set a sleep timer for tonight
-            </h1>
-            <div style={{ maxWidth: 320, width: '100%' }}>
-              <TimerPicker value={timer} onChange={setTimer} premium={false} />
-            </div>
-            <Pill
-              onClick={() => {
-                patchSettings({ defaultSleepTimer: timer })
-                setOnboardingComplete(true)
-                onDone(timer)
-              }}
-            >
-              Start tonight with Drift
-            </Pill>
           </div>
         )}
       </div>

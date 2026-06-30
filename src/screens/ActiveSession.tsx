@@ -76,16 +76,17 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         </span>
       </button>
 
-      {/* Always-visible exit — a clean pathway home, no discovery required. */}
+      {/* Always-visible exit — labeled so it can't be missed. */}
       <button
         aria-label="End session and return home"
         onClick={(e) => {
           e.stopPropagation()
           runtime.endSession()
         }}
-        style={{ ...cornerBtn, right: 16 }}
+        style={endBtn}
       >
-        ✕
+        <span style={{ fontSize: 14 }}>✕</span>
+        <span>End</span>
       </button>
 
       {session.stars && <Stars opacity={0.7 + 0.3 * runtime.timerOpacity} />}
@@ -138,7 +139,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
       {hint && !overlay && (
         <div style={hintRow}>
           <span style={{ fontSize: 12, color: 'var(--text-ghost)', animation: 'hint-fade 4.5s ease forwards' }}>
-            Tap anywhere for controls · ✕ to end
+            Tap anywhere for controls · “End” to stop
           </span>
         </div>
       )}
@@ -190,6 +191,24 @@ const bar: React.CSSProperties = {
   borderRadius: 2,
   background: 'currentColor',
   display: 'block',
+}
+const endBtn: React.CSSProperties = {
+  position: 'absolute',
+  top: 14,
+  right: 16,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 7,
+  height: 40,
+  padding: '0 16px',
+  borderRadius: 100,
+  background: 'rgba(167,139,250,0.16)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(167,139,250,0.5)',
+  color: 'var(--text-primary)',
+  fontSize: 14,
+  fontWeight: 400,
+  zIndex: 35,
 }
 const hintRow: React.CSSProperties = {
   position: 'absolute',
