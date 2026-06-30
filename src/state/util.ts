@@ -53,7 +53,9 @@ export function cappedTimer(t: SleepTimer, premium: boolean): SleepTimer {
 }
 
 export function timerLabel(t: SleepTimer): string {
-  return t === 'infinite' ? 'Until I stop it' : `${t} min`
+  if (t === 'infinite') return 'Until I stop it'
+  if (t === 0.5) return '30 sec · trial'
+  return `${t} min`
 }
 
 /** mm:ss for the session timer (§8.3). */

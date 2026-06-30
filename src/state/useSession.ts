@@ -100,8 +100,12 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       // sleep timer reached → start exponential fade-to-silence, then exit (§6.2)
       if (budget != null && !sleepStartedRef.current && e >= budget) {
         sleepStartedRef.current = true
-        audioEngine.beginSleepFade(FADE_TO_SILENCE)
-        window.setTimeout(() => finish(8, NATURAL_BLACKOUT_MS, NATURAL_BLACKOUT_MS), FADE_TO_SILENCE * 1000)
+        // short trials (≤60s) get a quick fade; full timers get the slow 3-min fade
+        const short = budget <= 60
+        const fadeSec = short ? 6 : FADE_TO_SILENCE
+        const blackoutMs = short ? 2500 : NATURAL_BLACKOUT_MS
+        audioEngine.beginSleepFade(fadeSec)
+        window.setTimeout(() => finish(short ? 3 : 8, blackoutMs, blackoutMs), fadeSec * 1000)
       }
     }, 1000)
     return () => clearInterval(id)

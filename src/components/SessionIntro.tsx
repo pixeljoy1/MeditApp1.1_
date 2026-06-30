@@ -20,17 +20,16 @@ export function SessionIntro({ onDone }: { onDone: () => void }) {
   return (
     <div
       style={{
-        position: 'absolute',
-        inset: 0,
+        minHeight: 72,
         display: 'grid',
         placeItems: 'center',
-        zIndex: 38,
         pointerEvents: 'none',
         opacity: gone ? 0 : 1,
-        transition: 'opacity 700ms cubic-bezier(0.22,1,0.36,1)',
+        transform: gone ? 'translateY(-6px)' : 'translateY(0)',
+        transition: 'opacity 700ms cubic-bezier(0.22,1,0.36,1), transform 700ms cubic-bezier(0.22,1,0.36,1)',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-primary)' }}>
           <SpeakerRising />
         </div>

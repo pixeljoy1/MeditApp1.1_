@@ -4,10 +4,11 @@ import { PaletteId } from '../theme/palettes'
 
 export type Screen = 'onboarding' | 'home' | 'preplay' | 'session'
 
-/** Sleep timer in minutes, or 'infinite' = "Until I stop it" (§6.2). */
+/** Sleep timer in minutes, or 'infinite' = "Until I stop it" (§6.2).
+ *  0.5 = a 30-second trial. */
 export type SleepTimer = number | 'infinite'
 
-export const TIMER_OPTIONS: SleepTimer[] = [10, 20, 30, 45, 60, 'infinite']
+export const TIMER_OPTIONS: SleepTimer[] = [0.5, 10, 20, 30, 45, 60, 'infinite']
 
 export interface Settings {
   // §9.1 Personalization

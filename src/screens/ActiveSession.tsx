@@ -106,23 +106,28 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           ) : (
             <SmoothTime seconds={bigSeconds} size={84} glow opacity={runtime.timerOpacity} />
           )}
-          {/* audio-reactive equalizer — mimics the playing music. Toggleable so it
-              never obstructs the meditation; collapses/expands with a smooth spring. */}
-          <div
-            style={{
-              overflow: 'hidden',
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              maxHeight: showEq ? 72 : 0,
-              opacity: showEq ? 0.85 + 0.15 * runtime.timerOpacity : 0,
-              transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
-              transition:
-                'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
-            }}
-          >
-            <Equalizer opacity={1} width={300} height={56} running={showEq} />
-          </div>
+          {/* During start-up the 'easing in' indicator occupies this slot; once it
+              drifts away the equalizer fades in (nudged down slightly for breathing room). */}
+          {intro ? (
+            <SessionIntro onDone={() => setIntro(false)} />
+          ) : (
+            <div
+              style={{
+                overflow: 'hidden',
+                width: '100%',
+                marginTop: 10,
+                display: 'flex',
+                justifyContent: 'center',
+                maxHeight: showEq ? 72 : 0,
+                opacity: showEq ? 0.85 + 0.15 * runtime.timerOpacity : 0,
+                transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
+                transition:
+                  'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
+              }}
+            >
+              <Equalizer opacity={1} width={300} height={56} running={showEq} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -178,8 +183,6 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           if (runtime.paused) runtime.togglePause()
         }}
       />
-
-      {intro && <SessionIntro onDone={() => setIntro(false)} />}
 
       {/* fade-to-black overlay (§5.3 / §8.3) */}
       <div
