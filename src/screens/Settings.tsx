@@ -95,7 +95,29 @@ export function Settings() {
         )}
       </div>
 
-      <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '20px 0 0', textAlign: 'center' }}>
+      <a
+        href="https://github.com/pixeljoy1/MeditApp1.1_/releases/download/android/drift.apk"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          marginTop: 20,
+          minHeight: 46,
+          borderRadius: 100,
+          background: 'var(--chip)',
+          border: '1px solid var(--hairline)',
+          color: 'var(--text-primary)',
+          fontSize: 14,
+          textDecoration: 'none',
+        }}
+      >
+        ⤓ Download Android app (.apk)
+      </a>
+
+      <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '14px 0 0', textAlign: 'center' }}>
         No ads. Ever. Your calm is sacred.
       </p>
     </Sheet>

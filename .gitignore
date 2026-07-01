@@ -9,3 +9,8 @@ dist-ssr
 
 # source audio (served copy lives in public/audio)
 sounds_/
+
+# Capacitor native project (generated in CI)
+android/
+ios/
+*.apk
