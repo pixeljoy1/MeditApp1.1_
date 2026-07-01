@@ -108,21 +108,20 @@ void main() {
     col *= 1.0 + 0.30 * u_psych; // bloom / brighten
   }
 
-  // pastel (light) theme: desaturate a touch and lift toward soft light
+  // pastel (light) theme: keep each palette's hue but as a soft, light tint
   if (u_pastel > 0.5) {
-    float lp = dot(col, vec3(0.299, 0.587, 0.114));
-    vec3 pastel = mix(vec3(lp), col, 0.55); // soften saturation
-    pastel = pastel * 0.5 + 0.46;           // lift into pastel range
-    col = pastel;
+    vec3 base = min(vec3(1.0), col * 1.8);   // lift the dark palette so hue reads
+    col = mix(base, vec3(1.0), 0.5);         // tint toward white → pastel shade
   }
 
   // breath luminosity + sleep dimming
   float lum = mix(0.86, 1.06, u_breath); // gentle ±, §5.1
   col *= lum * u_dim;
 
-  // subtle vignette for depth (color-opacity depth, §4.4 — no shadows)
+  // subtle vignette for depth (color-opacity depth, §4.4 — no shadows).
+  // Much gentler in pastel so the light theme doesn't dim at the edges.
   vec2 vc = v_uv - 0.5;
-  float vig = 1.0 - dot(vc, vc) * 0.55;
+  float vig = 1.0 - dot(vc, vc) * (u_pastel > 0.5 ? 0.15 : 0.55);
   col *= vig;
 
   fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);

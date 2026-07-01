@@ -25,6 +25,7 @@ export function SessionCard({ session, onSelect, onPreview, onLocked, featured, 
   const { persisted } = useStore()
   const locked = isLocked(session, persisted.premium)
   const palette = effectivePalette(session, persisted.settings)
+  const pastel = persisted.settings.theme === 'pastel'
   const pressTimer = useRef<number | null>(null)
 
   const startPress = () => {
@@ -65,13 +66,15 @@ export function SessionCard({ session, onSelect, onPreview, onLocked, featured, 
         transition: 'transform 280ms cubic-bezier(0.34,1.2,0.4,1)',
       }}
     >
-      <MiniGradient palette={palette} />
-      {/* legibility scrim — depth via opacity, no shadows (§4.4) */}
+      <MiniGradient palette={palette} pastel={pastel} />
+      {/* legibility scrim — light in pastel, dark otherwise */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(180deg, rgba(8,8,16,0) 30%, rgba(8,8,16,0.78) 100%)',
+          background: pastel
+            ? 'linear-gradient(180deg, rgba(255,255,255,0) 25%, rgba(255,255,255,0.72) 100%)'
+            : 'linear-gradient(180deg, rgba(8,8,16,0) 30%, rgba(8,8,16,0.78) 100%)',
         }}
       />
       <div
@@ -84,7 +87,7 @@ export function SessionCard({ session, onSelect, onPreview, onLocked, featured, 
           justifyContent: 'flex-end',
         }}
       >
-        <span className="label" style={{ color: 'rgba(240,238,248,0.7)' }}>
+        <span className="label" style={{ color: pastel ? 'rgba(43,37,64,0.72)' : 'rgba(240,238,248,0.7)' }}>
           {GROUP_LABEL[session.group]}
         </span>
         <span

@@ -75,7 +75,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   return (
     <div className="screen" onClick={winding ? undefined : overlay ? dismiss : summon}>
       {/* Theme setter (dark / pastel) — left of End */}
-      <div style={{ position: 'absolute', top: 14, right: 96, zIndex: 35, ...fadeControls }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ position: 'absolute', top: 14, right: 110, zIndex: 35, ...fadeControls }} onClick={(e) => e.stopPropagation()}>
         <ThemeToggle />
       </div>
 
