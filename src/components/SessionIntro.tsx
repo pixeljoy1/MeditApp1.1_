@@ -9,8 +9,8 @@ import { useEffect, useState } from 'react'
 export function SessionIntro({ onDone }: { onDone: () => void }) {
   const [gone, setGone] = useState(false)
   useEffect(() => {
-    const t = window.setTimeout(() => setGone(true), 3000)
-    const d = window.setTimeout(onDone, 3700) // after fade-out completes
+    const t = window.setTimeout(() => setGone(true), 2200) // once the sound is in
+    const d = window.setTimeout(onDone, 2800) // then hand the slot to the equalizer
     return () => {
       clearTimeout(t)
       clearTimeout(d)
@@ -34,7 +34,7 @@ export function SessionIntro({ onDone }: { onDone: () => void }) {
           <SpeakerRising />
         </div>
         <div style={{ width: 168, height: 3, borderRadius: 3, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', borderRadius: 3, background: 'var(--accent)', width: 0, animation: 'vol-fill 3000ms cubic-bezier(0.4,0,0.2,1) forwards' }} />
+          <div style={{ height: '100%', borderRadius: 3, background: 'var(--accent)', width: 0, animation: 'vol-fill 2200ms cubic-bezier(0.4,0,0.2,1) forwards' }} />
         </div>
         <span className="label" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
           Easing the sound in

@@ -81,12 +81,28 @@ export class AudioEngine {
     window.setTimeout(() => this.stop(), seconds * 1000 + 150)
   }
 
+  /** Gently duck the volume, then pause — avoids the MP3 click on hard pause. */
   pause() {
-    this.el?.pause()
+    if (!this.ctx || !this.master || !this.el) return
+    const now = this.ctx.currentTime
+    const g = this.master.gain
+    g.cancelScheduledValues(now)
+    g.setValueAtTime(Math.max(g.value, 0.0001), now)
+    g.linearRampToValueAtTime(0.0001, now + 0.35)
+    const el = this.el
+    window.setTimeout(() => el.pause(), 380)
   }
+
+  /** Resume playback and gently fade the volume back in. */
   resume() {
-    this.ctx?.resume()
+    if (!this.ctx || !this.master) return
+    this.ctx.resume()
     this.el?.play().catch(() => {})
+    const now = this.ctx.currentTime
+    const g = this.master.gain
+    g.cancelScheduledValues(now)
+    g.setValueAtTime(0.0001, now)
+    g.linearRampToValueAtTime(this._volume, now + 0.35)
   }
 
   setVolume(v: number) {

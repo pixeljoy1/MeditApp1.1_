@@ -22,7 +22,7 @@ function segColor(lit: boolean) {
   return lit ? 'rgba(248,247,252,1)' : 'rgba(240,238,248,0.24)'
 }
 
-export function Equalizer({ bars = 16, segments = 14, opacity = 1, width = 300, height = 64, running = true }: Props) {
+export function Equalizer({ bars = 22, segments = 16, opacity = 1, width = 300, height = 64, running = true }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const opacityRef = useRef(opacity)
   opacityRef.current = opacity

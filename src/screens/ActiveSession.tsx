@@ -66,7 +66,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   const fadeControls: React.CSSProperties = {
     opacity: winding ? 0 : 1,
     pointerEvents: winding ? 'none' : 'auto',
-    transition: 'opacity 600ms ease',
+    transition: 'opacity 1600ms ease',
   }
 
   return (
@@ -103,7 +103,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
       {session.stars && <Stars opacity={(winding ? 0 : 1) * (0.7 + 0.3 * runtime.timerOpacity)} />}
 
-      <div style={{ ...center, opacity: winding ? 0 : 1, transition: 'opacity 800ms ease' }}>
+      <div style={{ ...center, opacity: winding ? 0 : 1, transition: 'opacity 2600ms ease' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
           {session.subtitles && (
             <Subtitles lines={session.subtitles} opacity={0.7 + 0.3 * runtime.timerOpacity} />
@@ -146,8 +146,8 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         </div>
       )}
 
-      {/* wind-down supporting messages */}
-      {winding && <WindDown durationMs={runtime.blackoutMs} />}
+      {/* wind-down supporting messages (tuned to the session type) */}
+      {winding && <WindDown group={session.group} durationMs={runtime.blackoutMs} />}
 
       {runtime.statusNote && (
         <div style={statusRow}>

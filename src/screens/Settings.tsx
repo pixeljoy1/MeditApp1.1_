@@ -62,7 +62,7 @@ export function Settings() {
       </div>
 
       <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '20px 0 0', textAlign: 'center' }}>
-        No ads. Ever. Sleep is sacred.
+        No ads. Ever. Your calm is sacred.
       </p>
     </Sheet>
   )

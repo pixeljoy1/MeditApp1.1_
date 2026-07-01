@@ -125,7 +125,7 @@ export function MakersPage({ open, onClose }: { open: boolean; onClose: () => vo
         </a>
 
         <p className="serif" style={{ fontSize: 18, color: 'var(--text-secondary)', marginTop: 44 }}>
-          Sleep well.
+          Be well.
         </p>
       </div>
     </div>
