@@ -118,21 +118,23 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           {intro ? (
             <SessionIntro onDone={() => setIntro(false)} />
           ) : (
-            <div
-              style={{
-                overflow: 'hidden',
-                width: '100%',
-                marginTop: 10,
-                display: 'flex',
-                justifyContent: 'center',
-                maxHeight: showEq ? 72 : 0,
-                opacity: showEq ? 0.85 + 0.15 * runtime.timerOpacity : 0,
-                transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
-                transition:
-                  'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
-              }}
-            >
-              <Equalizer opacity={1} width={300} height={56} running={showEq} />
+            <div style={{ width: '100%', animation: 'eq-in 900ms cubic-bezier(0.22,1,0.36,1) both' }}>
+              <div
+                style={{
+                  overflow: 'hidden',
+                  width: '100%',
+                  marginTop: 10,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  maxHeight: showEq ? 72 : 0,
+                  opacity: showEq ? 0.85 + 0.15 * runtime.timerOpacity : 0,
+                  transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
+                  transition:
+                    'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
+                }}
+              >
+                <Equalizer opacity={1} width={300} height={56} running={showEq} />
+              </div>
             </div>
           )}
         </div>
@@ -206,7 +208,10 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           zIndex: 40,
         }}
       />
-      <style>{`@keyframes hint-fade { 0%,70% { opacity: 1 } 100% { opacity: 0 } }`}</style>
+      <style>{`
+        @keyframes hint-fade { 0%,70% { opacity: 1 } 100% { opacity: 0 } }
+        @keyframes eq-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   )
 }

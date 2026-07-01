@@ -4,18 +4,22 @@
  * that fills as the volume rises, then the whole thing drifts away buttery-smooth.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function SessionIntro({ onDone }: { onDone: () => void }) {
   const [gone, setGone] = useState(false)
+  // Keep onDone in a ref so the timers run exactly once and are never reset by the
+  // parent re-rendering (which happens every second / every frame).
+  const onDoneRef = useRef(onDone)
+  onDoneRef.current = onDone
   useEffect(() => {
     const t = window.setTimeout(() => setGone(true), 2200) // once the sound is in
-    const d = window.setTimeout(onDone, 2800) // then hand the slot to the equalizer
+    const d = window.setTimeout(() => onDoneRef.current(), 2800) // hand the slot to the equalizer
     return () => {
       clearTimeout(t)
       clearTimeout(d)
     }
-  }, [onDone])
+  }, [])
 
   return (
     <div
