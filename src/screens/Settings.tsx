@@ -10,7 +10,7 @@ import { TIMER_OPTIONS } from '../state/types'
 import { timerLabel } from '../state/util'
 
 export function Settings() {
-  const { settingsOpen, openSettings, persisted, patchSettings, setPremium } = useStore()
+  const { settingsOpen, openSettings, openPayment, persisted, patchSettings, setPremium } = useStore()
   const s = persisted.settings
 
   return (
@@ -69,7 +69,30 @@ export function Settings() {
           </select>
         </Row>
 
-        <Toggle label="Drift Premium" value={persisted.premium} onChange={setPremium} />
+        {persisted.premium ? (
+          <Row label="Drift Premium">
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 14, color: 'var(--accent)' }}>✓ Active</span>
+              <button onClick={() => setPremium(false)} style={{ fontSize: 11, color: 'var(--text-ghost)' }}>
+                reset
+              </button>
+            </span>
+          </Row>
+        ) : (
+          <button
+            onClick={() => {
+              openSettings(false)
+              openPayment(true)
+            }}
+            style={goPremium}
+          >
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 16, fontWeight: 500 }}>Go Premium</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Full sessions & all themes</span>
+            </span>
+            <span className="serif" style={{ fontSize: 22 }}>₹99</span>
+          </button>
+        )}
       </div>
 
       <p style={{ fontSize: 11, color: 'var(--text-ghost)', margin: '20px 0 0', textAlign: 'center' }}>
@@ -88,36 +111,16 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
-function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <Row label={label}>
-      <button
-        onClick={() => onChange(!value)}
-        aria-pressed={value}
-        style={{
-          width: 48,
-          height: 28,
-          borderRadius: 100,
-          background: value ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-          position: 'relative',
-          transition: 'background 200ms ease',
-        }}
-      >
-        <span
-          style={{
-            position: 'absolute',
-            top: 3,
-            left: value ? 23 : 3,
-            width: 22,
-            height: 22,
-            borderRadius: '50%',
-            background: '#fff',
-            transition: 'left 200ms cubic-bezier(0.34,1.2,0.4,1)',
-          }}
-        />
-      </button>
-    </Row>
-  )
+const goPremium: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  padding: '14px 16px',
+  borderRadius: 16,
+  background: 'rgba(167,139,250,0.14)',
+  border: '1px solid rgba(167,139,250,0.4)',
+  color: 'var(--text-primary)',
 }
 
 const select: React.CSSProperties = {

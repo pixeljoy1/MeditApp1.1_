@@ -5,12 +5,13 @@
  * Back arrow / swipe-left dismisses.
  */
 
+import { useEffect } from 'react'
 import { Session } from '../session/types'
 import { TimerPicker } from '../components/TimerPicker'
 import { Pill } from '../components/Pill'
 import { useStore } from '../state/store'
 import { PALETTES } from '../theme/palettes'
-import { effectivePalette } from '../state/util'
+import { effectivePalette, isProTimer } from '../state/util'
 
 export function PrePlay({
   session,
@@ -21,8 +22,19 @@ export function PrePlay({
   onBegin: () => void
   onBack: () => void
 }) {
-  const { persisted, selectedTimer, setTimer } = useStore()
+  const { persisted, selectedTimer, setTimer, openPayment } = useStore()
   const palette = PALETTES[effectivePalette(session, persisted.settings)]
+
+  // non-premium users default to the free 30-second trial
+  useEffect(() => {
+    if (!persisted.premium && isProTimer(selectedTimer)) setTimer(0.5)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persisted.premium])
+
+  const begin = () => {
+    if (!persisted.premium && isProTimer(selectedTimer)) openPayment(true)
+    else onBegin()
+  }
 
   return (
     <div className="screen">
@@ -46,11 +58,16 @@ export function PrePlay({
             <div className="label" style={{ marginBottom: 12 }}>
               Sleep Timer
             </div>
-            <TimerPicker value={selectedTimer} onChange={setTimer} premium={persisted.premium} />
+            <TimerPicker
+            value={selectedTimer}
+            onChange={setTimer}
+            premium={persisted.premium}
+            onProSelect={() => openPayment(true)}
+          />
           </div>
 
-          <Pill onClick={onBegin} full>
-            Begin Session
+          <Pill onClick={begin} full>
+            {!persisted.premium && isProTimer(selectedTimer) ? 'Unlock with Premium' : 'Begin Session'}
           </Pill>
         </div>
       </div>

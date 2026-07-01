@@ -45,11 +45,10 @@ export function effectivePalette(session: Session, settings: Settings): PaletteI
   return settings.preferredPalette === 'auto' ? session.palette : settings.preferredPalette
 }
 
-/** §14 free-tier sleep-timer cap: 30 min unless premium. */
-export function cappedTimer(t: SleepTimer, premium: boolean): SleepTimer {
-  if (premium) return t
-  if (t === 'infinite') return 30
-  return Math.min(t, 30)
+/** Freemium: the 30-second trial is free for everyone; 5 min and up is Pro. */
+export function isProTimer(t: SleepTimer): boolean {
+  if (t === 'infinite') return true
+  return t >= 5
 }
 
 export function timerLabel(t: SleepTimer): string {
@@ -78,9 +77,8 @@ export function prefersReducedMotion(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }
 
-/** A session is locked when it's premium-only and the user isn't premium (§14),
- * or it's a Focus "coming soon" placeholder (§6.3). */
-export function isLocked(session: Session, premium: boolean): boolean {
-  if (session.comingSoon) return true
-  return !session.free && !premium
+/** Every session is trial-able (30s) by anyone; only "coming soon" is locked.
+ * The Pro gate lives on the sleep-timer length, not the session. */
+export function isLocked(session: Session): boolean {
+  return !!session.comingSoon
 }

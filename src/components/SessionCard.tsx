@@ -23,7 +23,7 @@ interface Props {
 
 export function SessionCard({ session, onSelect, onPreview, onLocked, featured, fluid }: Props) {
   const { persisted } = useStore()
-  const locked = isLocked(session, persisted.premium)
+  const locked = isLocked(session)
   const palette = effectivePalette(session, persisted.settings)
   const pastel = persisted.settings.theme === 'pastel'
   const pressTimer = useRef<number | null>(null)

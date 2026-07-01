@@ -36,6 +36,8 @@ interface StoreShape {
   selectSession: (id: string) => void
   setTimer: (t: SleepTimer) => void
   openSettings: (open: boolean) => void
+  openPayment: (open: boolean) => void
+  paymentOpen: boolean
   patchSettings: (p: Partial<Settings>) => void
   setOnboardingComplete: (v: boolean) => void
   setPremium: (v: boolean) => void
@@ -54,6 +56,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [selectedTimer, setSelectedTimer] = useState<SleepTimer>(persisted.settings.defaultSleepTimer)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
 
   // Persist on change (debounced via microtask coalescing).
   const persistRef = useRef(persisted)
@@ -80,6 +83,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
       setTimer: setSelectedTimer,
       openSettings: setSettingsOpen,
+      openPayment: setPaymentOpen,
+      paymentOpen,
       patchSettings,
       setOnboardingComplete: (v) =>
         setPersisted((s) => ({ ...s, onboardingComplete: v })),
@@ -88,7 +93,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addRequest: (req) => setPersisted((s) => ({ ...s, requests: [req, ...s.requests] })),
       removeRequest: (id) => setPersisted((s) => ({ ...s, requests: s.requests.filter((r) => r.id !== id) })),
     }),
-    [persisted, screen, selectedSessionId, selectedTimer, settingsOpen, patchSettings],
+    [persisted, screen, selectedSessionId, selectedTimer, settingsOpen, paymentOpen, patchSettings],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

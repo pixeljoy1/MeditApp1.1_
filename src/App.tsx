@@ -16,6 +16,7 @@ import { PrePlay } from './screens/PrePlay'
 import { ActiveSession } from './screens/ActiveSession'
 import { Settings } from './screens/Settings'
 import { Paywall } from './screens/Paywall'
+import { PaymentSheet } from './components/PaymentSheet'
 import { Banner } from './components/Banner'
 import { useStore } from './state/store'
 import { useSession, SessionRuntime } from './state/useSession'
@@ -77,7 +78,7 @@ export default function App() {
 
   // "Decide for me" — pick a calming sleep theme and drop straight into it.
   const handleAutoStart = useCallback(() => {
-    const pool = CATALOG.filter((s) => s.group === 'sleep' && !isLocked(s, persisted.premium))
+    const pool = CATALOG.filter((s) => s.group === 'sleep' && !isLocked(s))
     const pick = pool[Math.floor(Math.random() * pool.length)] ?? byId('drift')!
     if (previewTimer.current) clearTimeout(previewTimer.current)
     audioEngine.stop()
@@ -179,12 +180,13 @@ export default function App() {
       </div>
 
       <Settings />
+      <PaymentSheet />
       <Paywall
         session={lockedSession}
         onClose={() => setLockedSession(null)}
         onUnlock={() => {
-          store.setPremium(true)
           setLockedSession(null)
+          store.openPayment(true)
         }}
       />
       {banner && <Banner text={banner} />}
