@@ -17,10 +17,25 @@ export class AudioEngine {
   private src: MediaElementAudioSourceNode | null = null
 
   private _volume = 0.85
+  private _muted = false
   private breathCycle = 6
 
   get volume() {
     return this._volume
+  }
+  get muted() {
+    return this._muted
+  }
+
+  /** Sound on/off — gently ramps the master gain to 0 (or back) without pausing. */
+  setMuted(m: boolean) {
+    this._muted = m
+    if (!this.ctx || !this.master) return
+    const now = this.ctx.currentTime
+    const g = this.master.gain
+    g.cancelScheduledValues(now)
+    g.setValueAtTime(Math.max(g.value, 0.0001), now)
+    g.linearRampToValueAtTime(m ? 0.0001 : this._volume, now + 0.35)
   }
   get analyser(): AnalyserNode | null {
     return this._analyser
@@ -52,6 +67,7 @@ export class AudioEngine {
     const ctx = this.ensure()
     if (ctx.state === 'suspended') await ctx.resume()
     this.stop()
+    this._muted = false
     this.breathCycle = breathCycle
 
     const el = new Audio(url)
@@ -102,12 +118,12 @@ export class AudioEngine {
     const g = this.master.gain
     g.cancelScheduledValues(now)
     g.setValueAtTime(0.0001, now)
-    g.linearRampToValueAtTime(this._volume, now + 0.35)
+    g.linearRampToValueAtTime(this._muted ? 0.0001 : this._volume, now + 0.35)
   }
 
   setVolume(v: number) {
     this._volume = Math.max(0, Math.min(1, v))
-    if (this.master && this.ctx) {
+    if (this.master && this.ctx && !this._muted) {
       this.master.gain.setTargetAtTime(this._volume, this.ctx.currentTime, 0.05)
     }
   }

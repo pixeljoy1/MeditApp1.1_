@@ -36,6 +36,7 @@ uniform float u_breath;       // 0..1 breath envelope (luminosity), §5.1
 uniform float u_dim;          // 0..1 dimming multiplier, §5.3
 uniform float u_motion;       // 1 = full shader, 0 = reduced motion static field
 uniform float u_psych;        // 0..1.5 psychedelic intensity (hue rotation + bloom)
+uniform float u_pastel;       // 1 = pastel (light) theme, 0 = dark
 
 // --- hue rotation (Rodrigues rotation about the grey axis) -----------------
 vec3 hueShift(vec3 col, float a){
@@ -105,6 +106,14 @@ void main() {
     col = mix(vec3(luma), col, 1.0 + 0.9 * u_psych); // oversaturate
     col += u_psych * 0.16 * vec3(sin(ang), sin(ang + 2.094), sin(ang + 4.188));
     col *= 1.0 + 0.30 * u_psych; // bloom / brighten
+  }
+
+  // pastel (light) theme: desaturate a touch and lift toward soft light
+  if (u_pastel > 0.5) {
+    float lp = dot(col, vec3(0.299, 0.587, 0.114));
+    vec3 pastel = mix(vec3(lp), col, 0.55); // soften saturation
+    pastel = pastel * 0.5 + 0.46;           // lift into pastel range
+    col = pastel;
   }
 
   // breath luminosity + sleep dimming

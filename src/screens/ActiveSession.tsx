@@ -13,16 +13,19 @@ import { SessionIntro } from '../components/SessionIntro'
 import { WindDown } from '../components/WindDown'
 import { BreathRing } from '../components/BreathRing'
 import { Equalizer } from '../components/Equalizer'
+import { SoundToggle } from '../components/SoundToggle'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { SmoothTime } from '../components/SmoothTime'
 import { Stars } from '../components/Stars'
 import { Subtitles } from '../components/Subtitles'
 import { breathStateAt } from '../session/BreathController'
+import { audioEngine } from '../audio/AudioEngine'
 import { color } from '../theme/tokens'
 
 export function ActiveSession({ session, runtime }: { session: Session; runtime: SessionRuntime }) {
   const [overlay, setOverlay] = useState(false)
   const [hint, setHint] = useState(true)
-  const [showEq, setShowEq] = useState(true)
+  const [soundOn, setSoundOn] = useState(true)
   const [intro, setIntro] = useState(true)
   const [endConfirm, setEndConfirm] = useState(false)
   const isBreath = !!session.breath
@@ -71,21 +74,10 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
 
   return (
     <div className="screen" onClick={winding ? undefined : overlay ? dismiss : summon}>
-      {/* Equalizer show/hide toggle — non-obtrusive control, top-left. */}
-      <button
-        aria-label={showEq ? 'Hide equalizer' : 'Show equalizer'}
-        onClick={(e) => {
-          e.stopPropagation()
-          setShowEq((v) => !v)
-        }}
-        style={{ ...cornerBtn, left: 16, color: showEq ? color.accent : 'var(--text-secondary)', ...fadeControls }}
-      >
-        <span style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 14 }}>
-          <i style={{ ...bar, height: 6 }} />
-          <i style={{ ...bar, height: 13 }} />
-          <i style={{ ...bar, height: 9 }} />
-        </span>
-      </button>
+      {/* Theme setter (dark / pastel) — left of End */}
+      <div style={{ position: 'absolute', top: 14, right: 96, zIndex: 35, ...fadeControls }} onClick={(e) => e.stopPropagation()}>
+        <ThemeToggle />
+      </div>
 
       {/* Always-visible exit — labeled so it can't be missed. */}
       <button
@@ -118,22 +110,28 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           {intro ? (
             <SessionIntro onDone={() => setIntro(false)} />
           ) : (
-            <div style={{ width: '100%', animation: 'eq-in 900ms cubic-bezier(0.22,1,0.36,1) both' }}>
-              <div
-                style={{
-                  overflow: 'hidden',
-                  width: '100%',
-                  marginTop: 10,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  maxHeight: showEq ? 72 : 0,
-                  opacity: showEq ? 0.85 + 0.15 * runtime.timerOpacity : 0,
-                  transform: showEq ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.94)',
-                  transition:
-                    'max-height 460ms cubic-bezier(0.22,1,0.36,1), opacity 360ms ease, transform 460ms cubic-bezier(0.22,1,0.36,1)',
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 6,
+                animation: 'eq-in 900ms cubic-bezier(0.22,1,0.36,1) both',
+              }}
+            >
+              {/* retained speaker = sound on/off; the equalizer responds */}
+              <SoundToggle
+                on={soundOn}
+                onToggle={() => {
+                  const next = !soundOn
+                  setSoundOn(next)
+                  audioEngine.setMuted(!next)
                 }}
-              >
-                <Equalizer opacity={1} width={300} height={56} running={showEq} />
+              />
+              <div style={{ opacity: 0.85 + 0.15 * runtime.timerOpacity, transition: 'opacity 360ms ease' }}>
+                <Equalizer opacity={1} width={300} height={56} running={soundOn} />
               </div>
             </div>
           )}
@@ -216,27 +214,6 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   )
 }
 
-const cornerBtn: React.CSSProperties = {
-  position: 'absolute',
-  top: 14,
-  width: 40,
-  height: 40,
-  borderRadius: 100,
-  background: 'rgba(8,8,16,0.4)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: 'var(--text-secondary)',
-  fontSize: 15,
-  display: 'grid',
-  placeItems: 'center',
-  zIndex: 35,
-}
-const bar: React.CSSProperties = {
-  width: 3,
-  borderRadius: 2,
-  background: 'currentColor',
-  display: 'block',
-}
 const endBtn: React.CSSProperties = {
   position: 'absolute',
   top: 14,

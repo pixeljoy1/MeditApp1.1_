@@ -50,9 +50,9 @@ export function ControlOverlay({ open, paused, volume, onTogglePause, onVolume, 
             onClick={(e) => e.stopPropagation()}
             style={{
               width: 'min(460px, 88vw)',
-              background: 'rgba(15,15,30,0.72)',
+              background: 'var(--panel)',
               backdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--hairline)',
               borderRadius: 28,
               padding: '28px 26px 24px',
               display: 'flex',

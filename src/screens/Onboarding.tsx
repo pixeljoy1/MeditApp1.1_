@@ -34,7 +34,7 @@ export function Onboarding({ onDone }: { onDone: (timer: SleepTimer) => void }) 
 
   return (
     <div className="screen">
-      <GradientCanvas controller={controller} psychedelic={0.7} />
+      <GradientCanvas controller={controller} psychedelic={0.7} pastel={persisted.settings.theme === 'pastel'} />
       <div style={overlay}>
         {step === 0 && (
           <div style={panel}>

@@ -26,6 +26,8 @@ export interface GradientCanvasProps {
    * The canvas lerps toward this so changes are smooth, never a hard step.
    */
   psychedelic?: number
+  /** Pastel (light) theme — softens + lifts the gradient. */
+  pastel?: boolean
   /** When true, freezes time advance (e.g. app backgrounded §11). */
   paused?: boolean
   /**
@@ -95,6 +97,7 @@ export function GradientCanvas(props: GradientCanvasProps) {
       dim: gl.getUniformLocation(prog, 'u_dim'),
       motion: gl.getUniformLocation(prog, 'u_motion'),
       psych: gl.getUniformLocation(prog, 'u_psych'),
+      pastel: gl.getUniformLocation(prog, 'u_pastel'),
     }
 
     let raf = 0
@@ -144,6 +147,7 @@ export function GradientCanvas(props: GradientCanvasProps) {
       const psychTarget = reduce ? 0 : p.psychedelic ?? 0
       psychCurrent += (psychTarget - psychCurrent) * Math.min(1, dt * 1.2)
       gl.uniform1f(u.psych, reduce ? 0 : psychCurrent + ctrl.transitionEnergy(now))
+      gl.uniform1f(u.pastel, p.pastel ? 1 : 0)
 
       gl.drawArrays(gl.TRIANGLES, 0, 3)
       raf = requestAnimationFrame(frame)

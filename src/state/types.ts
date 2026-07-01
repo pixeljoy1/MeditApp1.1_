@@ -10,9 +10,12 @@ export type SleepTimer = number | 'infinite'
 
 export const TIMER_OPTIONS: SleepTimer[] = [0.5, 10, 20, 30, 45, 60, 'infinite']
 
+export type ThemeMode = 'dark' | 'pastel'
+
 export interface Settings {
   // §9.1 Personalization
   name: string
+  theme: ThemeMode
   preferredPalette: 'auto' | PaletteId
   defaultSessionLength: number // minutes, informational
   // §9.2 Sleep behavior
@@ -28,6 +31,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   name: '',
+  theme: 'dark',
   preferredPalette: 'auto',
   defaultSessionLength: 30,
   defaultSleepTimer: 45,

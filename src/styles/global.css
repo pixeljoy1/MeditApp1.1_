@@ -12,6 +12,24 @@
 
   --serif: 'DM Serif Display', Georgia, serif;
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* frosted panel + hairline (theme-aware) */
+  --panel: rgba(15, 15, 30, 0.72);
+  --hairline: rgba(255, 255, 255, 0.08);
+}
+
+/* Pastel (light) theme — soft, calm, easy on the eyes */
+:root[data-theme='pastel'] {
+  --surface: #efeaf7;
+  --surface-raised: #fbf9ff;
+  --text-primary: #2b2540;
+  --text-secondary: #6e688c;
+  --text-ghost: #b6b0cc;
+  --accent: #7c5ce6;
+  --accent-dim: #a594e8;
+  --danger: #d94a52;
+  --panel: rgba(251, 249, 255, 0.86);
+  --hairline: rgba(30, 20, 60, 0.1);
 }
 
 * {

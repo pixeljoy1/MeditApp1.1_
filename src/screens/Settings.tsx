@@ -25,6 +25,17 @@ export function Settings() {
           />
         </Row>
 
+        <Row label="Theme">
+          <select
+            value={s.theme}
+            onChange={(e) => patchSettings({ theme: e.target.value as any })}
+            style={select}
+          >
+            <option value="dark">Dark</option>
+            <option value="pastel">Pastel</option>
+          </select>
+        </Row>
+
         <Row label="Palette">
           <select
             value={s.preferredPalette}

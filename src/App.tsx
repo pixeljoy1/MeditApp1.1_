@@ -32,6 +32,12 @@ export default function App() {
   const { screen, go, selectSession, selectedSessionId, persisted, selectedTimer, markPlayed } = store
   const controller = useMemo(() => new GradientController('dusk'), [])
   const reduce = useMemo(() => prefersReducedMotion(), [])
+  const pastel = persisted.settings.theme === 'pastel'
+
+  // apply the theme to the document so the CSS variables switch app-wide
+  useEffect(() => {
+    document.documentElement.dataset.theme = persisted.settings.theme
+  }, [persisted.settings.theme])
 
   const [lockedSession, setLockedSession] = useState<Session | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
@@ -140,6 +146,7 @@ export default function App() {
           sample={display === 'session' ? stableSample : undefined}
           // bright psychedelic field while choosing (Pre-Play); calm in session
           psychedelic={display === 'preplay' ? 0.85 : 0}
+          pastel={pastel}
         />
       )}
 
