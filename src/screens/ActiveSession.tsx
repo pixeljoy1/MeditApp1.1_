@@ -10,6 +10,7 @@ import { SessionRuntime } from '../state/useSession'
 import { ControlOverlay } from '../components/ControlOverlay'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { SessionIntro } from '../components/SessionIntro'
+import { WindDown } from '../components/WindDown'
 import { BreathRing } from '../components/BreathRing'
 import { Equalizer } from '../components/Equalizer'
 import { SmoothTime } from '../components/SmoothTime'
@@ -61,9 +62,15 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
   const countdown = runtime.sleepRemainingSec
   const bigSeconds = countdown == null ? runtime.elapsedSec : countdown
   const sleepLabel = countdown == null ? 'Until you stop it' : '🌙 until sleep'
+  const winding = runtime.windingDown
+  const fadeControls: React.CSSProperties = {
+    opacity: winding ? 0 : 1,
+    pointerEvents: winding ? 'none' : 'auto',
+    transition: 'opacity 600ms ease',
+  }
 
   return (
-    <div className="screen" onClick={overlay ? dismiss : summon}>
+    <div className="screen" onClick={winding ? undefined : overlay ? dismiss : summon}>
       {/* Equalizer show/hide toggle — non-obtrusive control, top-left. */}
       <button
         aria-label={showEq ? 'Hide equalizer' : 'Show equalizer'}
@@ -71,7 +78,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           e.stopPropagation()
           setShowEq((v) => !v)
         }}
-        style={{ ...cornerBtn, left: 16, color: showEq ? color.accent : 'var(--text-secondary)' }}
+        style={{ ...cornerBtn, left: 16, color: showEq ? color.accent : 'var(--text-secondary)', ...fadeControls }}
       >
         <span style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 14 }}>
           <i style={{ ...bar, height: 6 }} />
@@ -88,15 +95,15 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
           if (!runtime.paused) runtime.togglePause()
           setEndConfirm(true)
         }}
-        style={endBtn}
+        style={{ ...endBtn, ...fadeControls }}
       >
         <span style={{ fontSize: 14 }}>✕</span>
         <span>End</span>
       </button>
 
-      {session.stars && <Stars opacity={0.7 + 0.3 * runtime.timerOpacity} />}
+      {session.stars && <Stars opacity={(winding ? 0 : 1) * (0.7 + 0.3 * runtime.timerOpacity)} />}
 
-      <div style={center}>
+      <div style={{ ...center, opacity: winding ? 0 : 1, transition: 'opacity 800ms ease' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
           {session.subtitles && (
             <Subtitles lines={session.subtitles} opacity={0.7 + 0.3 * runtime.timerOpacity} />
@@ -131,13 +138,16 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
         </div>
       </div>
 
-      {!isBreath && (
+      {!isBreath && !winding && (
         <div style={sleepRow}>
           <span className="label" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
             {sleepLabel}
           </span>
         </div>
       )}
+
+      {/* wind-down supporting messages */}
+      {winding && <WindDown durationMs={runtime.blackoutMs} />}
 
       {runtime.statusNote && (
         <div style={statusRow}>
@@ -146,7 +156,7 @@ export function ActiveSession({ session, runtime }: { session: Session; runtime:
       )}
 
       {/* fading first-run hint */}
-      {hint && !overlay && (
+      {hint && !overlay && !winding && (
         <div style={hintRow}>
           <span style={{ fontSize: 12, color: 'var(--text-ghost)', animation: 'hint-fade 4.5s ease forwards' }}>
             Tap anywhere for controls · “End” to stop

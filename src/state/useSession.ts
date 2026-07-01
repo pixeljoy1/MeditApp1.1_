@@ -27,6 +27,7 @@ export interface SessionRuntime {
   timerOpacity: number
   blackout: number // 0..1 fade-to-black overlay
   blackoutMs: number // duration of the fade-to-black transition
+  windingDown: boolean // natural completion: controls fade, messages show
   statusNote: string | null // §11 transient states ("Paused — call in progress" etc.)
   sample: () => { dim: number; driftScale: number; breath: number }
   togglePause: () => void
@@ -51,6 +52,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
   const [tick, setTick] = useState(0) // 1Hz display tick
   const [blackout, setBlackout] = useState(0)
   const [blackoutMs, setBlackoutMs] = useState(700)
+  const [windingDown, setWindingDown] = useState(false)
   const [statusNote, setStatusNote] = useState<string | null>(null)
   const sleepStartedRef = useRef(false)
   const exitedRef = useRef(false)
@@ -96,13 +98,13 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       const e = elapsed()
       const budget = sleepBudgetRef.current
 
-      // sleep timer reached → the wind-down: a very slow, deliberate "lights
-      // going out" — sound and screen dim together over the same long fade, then
-      // quietly return home after a beat. Applies to every timer, incl. the trial.
+      // sleep timer reached → the wind-down: controls fade, supporting messages
+      // appear, sound + screen dim together (lights out), then quietly home.
+      // Kept brief: the whole thing completes within ~8s.
       if (budget != null && !sleepStartedRef.current && e >= budget) {
         sleepStartedRef.current = true
-        const sec = budget <= 60 ? 22 : 90 // trial gets a felt 22s; full timers 90s
-        finish(sec, sec * 1000 + 2500, sec * 1000)
+        setWindingDown(true)
+        finish(6.5, 7600, 6500)
       }
     }, 1000)
     return () => clearInterval(id)
@@ -159,6 +161,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       timerOpacity: timerOpacityAt(e),
       blackout,
       blackoutMs,
+      windingDown,
       statusNote,
       sample,
       togglePause,
@@ -168,6 +171,6 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
     }),
     // tick drives recompute each second
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tick, paused, volume, blackout, blackoutMs, statusNote, sample, togglePause, setVolume, addTen, endSession],
+    [tick, paused, volume, blackout, blackoutMs, windingDown, statusNote, sample, togglePause, setVolume, addTen, endSession],
   )
 }
