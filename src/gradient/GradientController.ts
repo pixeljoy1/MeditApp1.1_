@@ -15,7 +15,7 @@ export interface GradientParams {
 }
 
 export const DEFAULT_PARAMS: GradientParams = {
-  driftSpeed: 0.6,
+  driftSpeed: 0.66, // +10% overall movement
   colorSaturation: 0.7,
   noiseIntensity: 0.15,
   breathSync: true,

@@ -104,7 +104,8 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       if (budget != null && !sleepStartedRef.current && e >= budget) {
         sleepStartedRef.current = true
         setWindingDown(true)
-        finish(6.5, 7600, 6500)
+        // a spacious wind-down (~12s) — messages breathe, screen dims slowly
+        finish(12, 13000, 12000)
       }
     }, 1000)
     return () => clearInterval(id)
