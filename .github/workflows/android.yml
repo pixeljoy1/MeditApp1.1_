@@ -44,6 +44,9 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Apply Drift moon icon & splash
+        run: npx @capacitor/assets generate --android --assetPath assets
+
       - name: Build debug APK
         run: |
           cd android
