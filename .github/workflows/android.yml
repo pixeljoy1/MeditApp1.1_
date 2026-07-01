@@ -29,10 +29,14 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build web app
+      - name: Build web app (audio streamed from the web → slim APK)
         run: npm run build
         env:
           VITE_BUILD: ${{ github.run_number }}
+          VITE_AUDIO_BASE: https://pixeljoy1.github.io/MeditApp1.1_/
+
+      - name: Drop bundled audio (streamed instead)
+        run: rm -rf dist/audio
 
       - name: Add Android platform
         run: npx cap add android

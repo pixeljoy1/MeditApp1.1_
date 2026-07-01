@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_BUILD?: string
+  readonly VITE_AUDIO_BASE?: string
 }
 
 interface ImportMeta {

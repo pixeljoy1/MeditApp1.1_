@@ -6,8 +6,10 @@
 
 import { BreathPattern, Session } from './types'
 
-/** Resolve an audio file in public/audio to a base-aware URL. */
-const A = (file: string) => `${import.meta.env.BASE_URL}audio/${file}`
+/** Resolve an audio file to a URL. VITE_AUDIO_BASE lets the slim APK stream the
+ *  audio from the web instead of bundling it; otherwise it's served locally. */
+const AUDIO_BASE = import.meta.env.VITE_AUDIO_BASE || import.meta.env.BASE_URL
+const A = (file: string) => `${AUDIO_BASE}audio/${file}`
 
 const BOX: BreathPattern = {
   name: '4-4-4-4',
