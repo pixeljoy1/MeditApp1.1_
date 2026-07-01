@@ -6,3 +6,6 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# source audio (served copy lives in public/audio)
+sounds_/

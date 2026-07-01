@@ -59,7 +59,7 @@ export default function App() {
     (s: Session) => {
       // §7.2 long-press → 10s audio preview. Gradient continuity stays on the
       // Pre-Play/Session canvases; here we surface the sound + a hint.
-      audioEngine.play(s.sound)
+      audioEngine.play(s.track, s.sound.breathCycle)
       showBanner(`Previewing ${s.title}`)
       if (previewTimer.current) clearTimeout(previewTimer.current)
       previewTimer.current = window.setTimeout(() => audioEngine.fadeOut(1.5), 10_000)

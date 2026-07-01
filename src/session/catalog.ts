@@ -1,12 +1,13 @@
 /**
- * Session catalog — Drift spec §6.3 (MVP, 20 sessions + 4 Focus placeholders).
- * Each session carries a mood-matched gradient palette and a specific ambient
- * sound module. All Sleep themes are free so the textures can be experienced.
- *
- * When licensed stems land, swap `sound` for stream URLs.
+ * Session catalog — each session plays a real, curated MP3 (public/audio),
+ * distributed so tracks rarely repeat. Mood-matched gradients per session.
+ * All Sleep + Chanting themes are free.
  */
 
 import { BreathPattern, Session } from './types'
+
+/** Resolve an audio file in public/audio to a base-aware URL. */
+const A = (file: string) => `${import.meta.env.BASE_URL}audio/${file}`
 
 const BOX: BreathPattern = {
   name: '4-4-4-4',
@@ -19,137 +20,80 @@ const BOX: BreathPattern = {
 }
 
 export const CATALOG: Session[] = [
-  // ── Sleep (8) — all free, each with its own palette + ambient module ──
+  // ── Sleep (8) ────────────────────────────────────────────────
   {
-    id: 'drift',
-    title: 'Drift',
-    group: 'sleep',
-    durationMin: 48,
-    palette: 'dusk',
-    free: true,
+    id: 'drift', title: 'Drift', group: 'sleep', durationMin: 48, palette: 'dusk', free: true,
+    track: A('sleep1_.mp3'),
     sound: { root: 110, breathCycle: 7, ambientDensity: 0.3, cutoff: 600, ambient: 'none' },
   },
   {
-    id: 'coastal-night',
-    title: 'Coastal Night',
-    group: 'sleep',
-    durationMin: 32,
-    palette: 'coastal',
-    free: true,
+    id: 'coastal-night', title: 'Coastal Night', group: 'sleep', durationMin: 32, palette: 'coastal', free: true,
+    track: A('ocean1.mp3'),
     sound: { root: 98, breathCycle: 6, ambientDensity: 0.9, cutoff: 700, ambient: 'waves' },
   },
   {
-    id: 'rainfall-system',
-    title: 'Rainfall System',
-    group: 'sleep',
-    durationMin: 40,
-    palette: 'rainfall',
-    free: true,
+    id: 'rainfall-system', title: 'Rainfall System', group: 'sleep', durationMin: 40, palette: 'rainfall', free: true,
+    track: A('rain1_.mp3'),
     sound: { root: 90, breathCycle: 5, ambientDensity: 0.95, cutoff: 1200, ambient: 'rain' },
   },
   {
-    id: 'northern-lights',
-    title: 'Northern Lights',
-    group: 'sleep',
-    durationMin: 35,
-    palette: 'aurora',
-    free: true,
+    id: 'northern-lights', title: 'Northern Lights', group: 'sleep', durationMin: 35, palette: 'aurora', free: true,
+    track: A('flute_zen.mp3'),
     sound: { root: 130, breathCycle: 6.5, ambientDensity: 0.55, cutoff: 900, ambient: 'shimmer' },
   },
   {
-    id: 'forest-breathe',
-    title: 'Forest Breathe',
-    group: 'sleep',
-    durationMin: 38,
-    palette: 'forest',
-    free: true,
+    id: 'forest-breathe', title: 'Forest Breathe', group: 'sleep', durationMin: 38, palette: 'forest', free: true,
+    track: A('forest.mp3'),
     sound: { root: 100, breathCycle: 6, ambientDensity: 0.7, cutoff: 800, ambient: 'forest' },
   },
   {
-    id: 'deep-tide',
-    title: 'Deep Tide',
-    group: 'sleep',
-    durationMin: 45,
-    palette: 'tide',
-    free: true,
+    id: 'deep-tide', title: 'Deep Tide', group: 'sleep', durationMin: 45, palette: 'tide', free: true,
+    track: A('rest_.mp3'),
     sound: { root: 70, breathCycle: 7, ambientDensity: 0.7, cutoff: 420, ambient: 'waves' },
   },
   {
-    id: 'starfield',
-    title: 'Starfield',
-    group: 'sleep',
-    durationMin: 50,
-    palette: 'starfield',
-    free: true,
-    stars: true,
+    id: 'starfield', title: 'Starfield', group: 'sleep', durationMin: 50, palette: 'starfield', free: true, stars: true,
+    track: A('zen1.mp3'),
     sound: { root: 120, breathCycle: 7, ambientDensity: 0.2, cutoff: 1100, ambient: 'shimmer' },
   },
   {
-    id: 'mountain-pass',
-    title: 'Mountain Pass',
-    group: 'sleep',
-    durationMin: 36,
-    palette: 'mountain',
-    free: true,
+    id: 'mountain-pass', title: 'Mountain Pass', group: 'sleep', durationMin: 36, palette: 'mountain', free: true,
+    track: A('nature_.mp3'),
     sound: { root: 105, breathCycle: 6, ambientDensity: 0.6, cutoff: 750, ambient: 'wind' },
   },
 
   // ── Body Scan (4) ────────────────────────────────────────────
   {
-    id: 'slow-descent',
-    title: 'Slow Descent',
-    group: 'bodyScan',
-    durationMin: 20,
-    palette: 'deepWater',
-    free: false,
+    id: 'slow-descent', title: 'Slow Descent', group: 'bodyScan', durationMin: 20, palette: 'deepWater', free: false,
+    track: A('meditation1_.mp3'),
     sound: { root: 96, breathCycle: 6, ambientDensity: 0.1, cutoff: 650, ambient: 'none' },
   },
   {
-    id: 'weight-and-warmth',
-    title: 'Weight & Warmth',
-    group: 'bodyScan',
-    durationMin: 22,
-    palette: 'ember',
-    free: false,
+    id: 'weight-and-warmth', title: 'Weight & Warmth', group: 'bodyScan', durationMin: 22, palette: 'ember', free: false,
+    track: A('relax1.mp3'),
     sound: { root: 92, breathCycle: 6.5, ambientDensity: 0.15, cutoff: 700, ambient: 'none' },
   },
   {
-    id: 'pressure-release',
-    title: 'Pressure Release',
-    group: 'bodyScan',
-    durationMin: 25,
-    palette: 'deepWater',
-    free: false,
+    id: 'pressure-release', title: 'Pressure Release', group: 'bodyScan', durationMin: 25, palette: 'deepWater', free: false,
+    track: A('meditation2_.mp3'),
     sound: { root: 85, breathCycle: 6, ambientDensity: 0.1, cutoff: 600, ambient: 'none' },
   },
   {
-    id: 'stillness',
-    title: 'Stillness',
-    group: 'bodyScan',
-    durationMin: 30,
-    palette: 'dusk',
-    free: false,
+    id: 'stillness', title: 'Stillness', group: 'bodyScan', durationMin: 30, palette: 'dusk', free: false,
+    track: A('forest3.mp3'),
     sound: { root: 110, breathCycle: 7, ambientDensity: 0.12, cutoff: 900, ambient: 'shimmer' },
   },
 
   // ── Breathwork (4) ───────────────────────────────────────────
   {
-    id: 'box-breath',
-    title: 'Box Breath',
-    group: 'breathwork',
-    durationMin: 10,
-    palette: 'ember',
-    free: true,
+    id: 'box-breath', title: 'Box Breath', group: 'breathwork', durationMin: 10, palette: 'ember', free: true,
+    track: A('forest2.mp3'),
     sound: { root: 120, breathCycle: 4, ambientDensity: 0.05, cutoff: 1000, ambient: 'none' },
     breath: { ...BOX },
   },
   {
-    id: '4-7-8-sleep',
-    title: '4-7-8 Sleep',
-    group: 'breathwork',
-    durationMin: 12,
-    palette: 'dusk',
-    free: false,
+    id: '4-7-8-sleep', title: '4-7-8 Sleep', group: 'breathwork', durationMin: 12, palette: 'dusk', free: false,
+    track: A('sleep1_.mp3'),
     sound: { root: 110, breathCycle: 7, ambientDensity: 0.05, cutoff: 800, ambient: 'none' },
     breath: {
       name: '4-7-8',
@@ -161,12 +105,8 @@ export const CATALOG: Session[] = [
     },
   },
   {
-    id: 'coherent-breath',
-    title: 'Coherent Breath',
-    group: 'breathwork',
-    durationMin: 12,
-    palette: 'deepWater',
-    free: false,
+    id: 'coherent-breath', title: 'Coherent Breath', group: 'breathwork', durationMin: 12, palette: 'deepWater', free: false,
+    track: A('relax1.mp3'),
     sound: { root: 100, breathCycle: 5.5, ambientDensity: 0.05, cutoff: 900, ambient: 'none' },
     breath: {
       name: '5.5 · 5.5',
@@ -177,12 +117,8 @@ export const CATALOG: Session[] = [
     },
   },
   {
-    id: 'exhale-extended',
-    title: 'Exhale Extended',
-    group: 'breathwork',
-    durationMin: 10,
-    palette: 'ember',
-    free: false,
+    id: 'exhale-extended', title: 'Exhale Extended', group: 'breathwork', durationMin: 10, palette: 'ember', free: false,
+    track: A('ocean1.mp3'),
     sound: { root: 105, breathCycle: 6, ambientDensity: 0.05, cutoff: 850, ambient: 'none' },
     breath: {
       name: '4 · 8',
@@ -193,14 +129,10 @@ export const CATALOG: Session[] = [
     },
   },
 
-  // ── Chanting (2) — chant voice layered over background music ──
+  // ── Chanting (3) — real vocal chants ─────────────────────────
   {
-    id: 'buddhist-chant',
-    title: 'Buddhist Chant',
-    group: 'chanting',
-    durationMin: 30,
-    palette: 'temple',
-    free: true,
+    id: 'buddhist-chant', title: 'Buddhist Chant', group: 'chanting', durationMin: 30, palette: 'temple', free: true,
+    track: A('om1.mp3'),
     sound: { root: 82, breathCycle: 7, ambientDensity: 0.9, cutoff: 620, ambient: 'chant' },
     subtitles: [
       'Oṃ maṇi padme hūṃ',
@@ -214,12 +146,8 @@ export const CATALOG: Session[] = [
     ],
   },
   {
-    id: 'hindu-chant',
-    title: 'Hindu Chant',
-    group: 'chanting',
-    durationMin: 30,
-    palette: 'saffron',
-    free: true,
+    id: 'hindu-chant', title: 'Hindu Chant', group: 'chanting', durationMin: 30, palette: 'saffron', free: true,
+    track: A('om_2vocal.mp3'),
     sound: { root: 110, breathCycle: 6, ambientDensity: 0.9, cutoff: 760, ambient: 'chant' },
     subtitles: [
       'Oṃ',
@@ -229,6 +157,18 @@ export const CATALOG: Session[] = [
       'Tat tvam asi —\nThou art That.\n— Chāndogya Upaniṣad 6.8.7',
       'Ahaṃ brahmāsmi —\nI am Brahman.\n— Bṛhadāraṇyaka Upaniṣad 1.4.10',
       'Sarvaṃ khalvidaṃ brahma —\nAll this is Brahman.\n— Chāndogya Upaniṣad 3.14.1',
+      'Oṃ śāntiḥ śāntiḥ śāntiḥ —\nPeace, peace, peace.',
+    ],
+  },
+  {
+    id: 'sacred-om', title: 'Sacred Om', group: 'chanting', durationMin: 30, palette: 'aurora', free: true,
+    track: A('om3_female.mp3'),
+    sound: { root: 130, breathCycle: 6.5, ambientDensity: 0.9, cutoff: 900, ambient: 'chant' },
+    subtitles: [
+      'Oṃ',
+      'Oṃ — the sound of the universe.',
+      "So'ham —\nI am That.",
+      'Oṃ pūrṇam adaḥ pūrṇam idam —\nThat is whole, this is whole.\n— Īśa Upaniṣad',
       'Oṃ śāntiḥ śāntiḥ śāntiḥ —\nPeace, peace, peace.',
     ],
   },

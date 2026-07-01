@@ -35,10 +35,9 @@ export interface SessionRuntime {
   endSession: () => void
 }
 
-const FADE_TO_SILENCE = 180 // §6.2 default 3-min audio fade
 // §8.3 spec'd an 8s fade; in practice a manual exit needs to feel immediate, so
 // End Session fades audio over 2s and returns home in ~0.9s — a clean pathway.
-const NATURAL_BLACKOUT_MS = 8000
+// The natural wind-down (sleep-timer complete) is slow and deliberate instead.
 
 export function useSession({ session, timer, onExit }: Options): SessionRuntime {
   const startRef = useRef(performance.now())
@@ -63,7 +62,7 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
 
   // Start audio on mount; stop on unmount.
   useEffect(() => {
-    audioEngine.play(session.sound)
+    audioEngine.play(session.track, session.sound.breathCycle)
     return () => audioEngine.stop()
   }, [session.id])
 
@@ -97,15 +96,13 @@ export function useSession({ session, timer, onExit }: Options): SessionRuntime 
       const e = elapsed()
       const budget = sleepBudgetRef.current
 
-      // sleep timer reached → start exponential fade-to-silence, then exit (§6.2)
+      // sleep timer reached → the wind-down: a very slow, deliberate "lights
+      // going out" — sound and screen dim together over the same long fade, then
+      // quietly return home after a beat. Applies to every timer, incl. the trial.
       if (budget != null && !sleepStartedRef.current && e >= budget) {
         sleepStartedRef.current = true
-        // short trials (≤60s) get a quick fade; full timers get the slow 3-min fade
-        const short = budget <= 60
-        const fadeSec = short ? 6 : FADE_TO_SILENCE
-        const blackoutMs = short ? 2500 : NATURAL_BLACKOUT_MS
-        audioEngine.beginSleepFade(fadeSec)
-        window.setTimeout(() => finish(short ? 3 : 8, blackoutMs, blackoutMs), fadeSec * 1000)
+        const sec = budget <= 60 ? 22 : 90 // trial gets a felt 22s; full timers 90s
+        finish(sec, sec * 1000 + 2500, sec * 1000)
       }
     }, 1000)
     return () => clearInterval(id)
