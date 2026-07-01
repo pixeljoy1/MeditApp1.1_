@@ -13,9 +13,10 @@
   --serif: 'DM Serif Display', Georgia, serif;
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* frosted panel + hairline (theme-aware) */
+  /* frosted panel + hairline + chip fill (theme-aware) */
   --panel: rgba(15, 15, 30, 0.72);
-  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline: rgba(255, 255, 255, 0.12);
+  --chip: rgba(255, 255, 255, 0.06);
 }
 
 /* Pastel (light) theme — soft, calm, easy on the eyes */
@@ -29,7 +30,8 @@
   --accent-dim: #a594e8;
   --danger: #d94a52;
   --panel: rgba(251, 249, 255, 0.86);
-  --hairline: rgba(30, 20, 60, 0.1);
+  --hairline: rgba(43, 37, 64, 0.22);
+  --chip: rgba(43, 37, 64, 0.07);
 }
 
 * {

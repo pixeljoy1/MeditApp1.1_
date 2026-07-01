@@ -87,13 +87,13 @@ export const CATALOG: Session[] = [
   // ── Breathwork (4) ───────────────────────────────────────────
   {
     id: 'box-breath', title: 'Box Breath', group: 'breathwork', durationMin: 10, palette: 'ember', free: true,
-    track: A('forest2.mp3'),
+    track: A('om1.mp3'),
     sound: { root: 120, breathCycle: 4, ambientDensity: 0.05, cutoff: 1000, ambient: 'none' },
     breath: { ...BOX },
   },
   {
     id: '4-7-8-sleep', title: '4-7-8 Sleep', group: 'breathwork', durationMin: 12, palette: 'dusk', free: false,
-    track: A('sleep1_.mp3'),
+    track: A('om_2vocal.mp3'),
     sound: { root: 110, breathCycle: 7, ambientDensity: 0.05, cutoff: 800, ambient: 'none' },
     breath: {
       name: '4-7-8',
@@ -106,7 +106,7 @@ export const CATALOG: Session[] = [
   },
   {
     id: 'coherent-breath', title: 'Coherent Breath', group: 'breathwork', durationMin: 12, palette: 'deepWater', free: false,
-    track: A('relax1.mp3'),
+    track: A('om3_female.mp3'),
     sound: { root: 100, breathCycle: 5.5, ambientDensity: 0.05, cutoff: 900, ambient: 'none' },
     breath: {
       name: '5.5 · 5.5',
@@ -118,7 +118,7 @@ export const CATALOG: Session[] = [
   },
   {
     id: 'exhale-extended', title: 'Exhale Extended', group: 'breathwork', durationMin: 10, palette: 'ember', free: false,
-    track: A('ocean1.mp3'),
+    track: A('om1.mp3'),
     sound: { root: 105, breathCycle: 6, ambientDensity: 0.05, cutoff: 850, ambient: 'none' },
     breath: {
       name: '4 · 8',

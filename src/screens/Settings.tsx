@@ -124,16 +124,16 @@ const goPremium: React.CSSProperties = {
 }
 
 const select: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--chip)',
+  border: '1px solid var(--hairline)',
   borderRadius: 12,
   padding: '8px 12px',
   fontSize: 14,
   color: 'var(--text-primary)',
 }
 const textInput: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--chip)',
+  border: '1px solid var(--hairline)',
   borderRadius: 12,
   padding: '8px 12px',
   fontSize: 14,

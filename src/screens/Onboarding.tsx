@@ -79,8 +79,8 @@ export function Onboarding({ onDone }: { onDone: (timer: SleepTimer) => void }) 
                     minHeight: 48,
                     padding: '0 22px',
                     borderRadius: radius.pill,
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid var(--hairline)',
+                    background: 'var(--chip)',
                     color: 'var(--text-primary)',
                     fontSize: 16,
                   }}

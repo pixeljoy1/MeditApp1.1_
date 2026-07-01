@@ -169,7 +169,11 @@ export function Home({
               <img
                 src={wizardLogo}
                 alt="Wizard Communications"
-                style={{ height: 20, filter: 'brightness(0) invert(1)', opacity: 0.95 }}
+                style={{
+                  height: 20,
+                  filter: persisted.settings.theme === 'pastel' ? 'brightness(0.4)' : 'brightness(0) invert(1)',
+                  opacity: 0.95,
+                }}
               />
               <span style={{ fontSize: 10, color: 'var(--text-secondary)', letterSpacing: 0.6 }}>
                 CRAFTED IN KOLKATA →

@@ -7,8 +7,11 @@
 
 import { useEffect, useState } from 'react'
 import wizardLogo from '../assets/wizard-footer-logo.png'
+import { useStore } from '../state/store'
 
 export function MakersPage({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { persisted } = useStore()
+  const pastel = persisted.settings.theme === 'pastel'
   const [render, setRender] = useState(open)
   const [shown, setShown] = useState(false)
 
@@ -32,8 +35,9 @@ export function MakersPage({ open, onClose }: { open: boolean; onClose: () => vo
         inset: 0,
         zIndex: 80,
         overflowY: 'auto',
-        background:
-          'radial-gradient(120% 70% at 50% 8%, rgba(13,180,200,0.12), transparent 55%), linear-gradient(180deg, #0b0b16 0%, #080810 100%)',
+        background: pastel
+          ? 'radial-gradient(120% 70% at 50% 8%, rgba(13,180,200,0.14), transparent 55%), linear-gradient(180deg, #f3eff9 0%, #efeaf7 100%)'
+          : 'radial-gradient(120% 70% at 50% 8%, rgba(13,180,200,0.12), transparent 55%), linear-gradient(180deg, #0b0b16 0%, #080810 100%)',
         opacity: shown ? 1 : 0,
         transition: 'opacity 480ms ease',
       }}
@@ -69,7 +73,7 @@ export function MakersPage({ open, onClose }: { open: boolean; onClose: () => vo
           <img
             src={wizardLogo}
             alt="Wizard Communications"
-            style={{ position: 'relative', width: 240, maxWidth: '72vw', filter: 'brightness(0) invert(1)', opacity: 0.96 }}
+            style={{ position: 'relative', width: 240, maxWidth: '72vw', filter: pastel ? 'brightness(0.35)' : 'brightness(0) invert(1)', opacity: 0.96 }}
           />
         </div>
 
@@ -99,7 +103,7 @@ export function MakersPage({ open, onClose }: { open: boolean; onClose: () => vo
           </p>
         </div>
 
-        <div style={{ width: 40, height: 1, background: 'rgba(255,255,255,0.12)', margin: '40px 0 24px' }} />
+        <div style={{ width: 40, height: 1, background: 'var(--hairline)', margin: '40px 0 24px' }} />
 
         <div style={{ fontSize: 12, color: 'var(--text-ghost)', letterSpacing: 0.4, marginBottom: 28 }}>
           EST. 2004 · KOLKATA, INDIA
@@ -115,7 +119,7 @@ export function MakersPage({ open, onClose }: { open: boolean; onClose: () => vo
             alignItems: 'center',
             padding: '0 24px',
             borderRadius: 100,
-            border: '1px solid rgba(255,255,255,0.14)',
+            border: '1px solid var(--hairline)',
             color: 'var(--text-primary)',
             fontSize: 14,
             textDecoration: 'none',
@@ -142,9 +146,9 @@ const backBtn: React.CSSProperties = {
   height: 40,
   padding: '0 16px',
   borderRadius: 100,
-  background: 'rgba(8,8,16,0.45)',
+  background: 'var(--panel)',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255,255,255,0.1)',
+  border: '1px solid var(--hairline)',
   fontSize: 15,
   color: 'var(--text-primary)',
   zIndex: 5,
